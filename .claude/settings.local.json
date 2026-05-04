@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/frapa/**)",
+      "Read(//c/Users/frapa/Desktop//**)",
+      "Bash(npm run *)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"require\\('three'\\)\")",
+      "Bash(npm install *)",
+      "Bash(npx vite *)",
+      "WebFetch(domain:dist-fmwkbjau.devinapps.com)",
+      "Bash(awk '/^var GLB_DATA = \\\\{/,/^};/' \"c:/Users/frapa/Desktop/nexus/public/images/machines/holo/nexus.html\")",
+      "Bash(python3)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(curl -s http://localhost:5176)",
+      "Bash(grep -E \"\\\\.\\(jpeg|jpg|glb|html\\)$\")",
+      "Bash(curl -s http://localhost:5177)",
+      "Bash(curl -s http://localhost:5178)",
+      "mcp__Claude_in_Chrome__switch_browser",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(grep -o '\"[0-9]\":\\\\s*\"[^\"]\\\\{50,\\\\}' nexus.html)",
+      "Bash(where cloudflared *)",
+      "Bash(where npx *)",
+      "Bash(npx --yes localtunnel --port 3333 --subdomain nexus-digital-twin)",
+      "Bash(echo \"Tunnel starting in background, PID: $!\")",
+      "Bash(npx --yes localtunnel --port 3333)",
+      "Bash(cat /tmp/lt_out.txt)",
+      "Bash(jobs)",
+      "Bash(npx localtunnel *)",
+      "Bash(echo \"LT PID: $!\")",
+      "Bash(npx --yes cloudflared tunnel --url http://localhost:3333)",
+      "Bash(echo \"CF PID: $!\")",
+      "Bash(taskkill //F //IM node.exe)",
+      "PowerShell($lines = Get-Content \"c:\\\\Users\\\\frapa\\\\Desktop\\\\nexus\\\\src\\\\data\\\\glbModels.js\" -TotalCount 12; foreach \\($l in $lines\\) { if \\($l.Length -gt 60\\) { Write-Output \\($l.Substring\\(0, 60\\) + \"...\"\\) } else { Write-Output $l } })",
+      "Bash(curl -s -X POST \"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w\" -H \"Content-Type: application/json\" -d '{\"contents\":[{\"parts\":[{\"text\":\"Rispondi SOLO con questo JSON: {\\\\\"ok\\\\\":true,\\\\\"msg\\\\\":\\\\\"connesso\\\\\"}\"}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"temperature\":0.1}}')",
+      "Bash(curl -s -X POST \"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w\" -H \"Content-Type: application/json\" -d '{\"contents\":[{\"parts\":[{\"text\":\"Rispondi SOLO con questo JSON: {\\\\\"ok\\\\\":true,\\\\\"msg\\\\\":\\\\\"connesso\\\\\"}\"}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"temperature\":0.1}}')",
+      "Bash(curl -s \"https://generativelanguage.googleapis.com/v1beta/models?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w\")",
+      "Bash(curl -s -X POST \"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w\" -H \"Content-Type: application/json\" -d '{\"contents\":[{\"parts\":[{\"text\":\"Rispondi SOLO con questo JSON: {\\\\\"ok\\\\\":true,\\\\\"msg\\\\\":\\\\\"connesso\\\\\"}\"}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"temperature\":0.1}}')"
+    ]
+  }
+}

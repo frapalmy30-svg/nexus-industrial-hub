@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://placehold.co/200x200/ff0000/ffffff/png?text=TEST\" -o /tmp/test.png)",
+      "Bash(python3 -c \"import base64; print\\(base64.b64encode\\(open\\('/tmp/test.png','rb'\\).read\\(\\)\\).decode\\(\\)\\)\")",
+      "Read(//tmp/**)",
+      "Bash(curl -s -X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w' -H 'Content-Type: application/json' -d '{\"contents\":[{\"parts\":[{\"text\":\"Che colore predomina in questa immagine? Rispondi SOLO JSON: {\\\\\"color\\\\\":\\\\\"...\\\\\"}\"},{\"inline_data\":{\"mime_type\":\"image/png\",\"data\":\"__TRACKED_VAR__\"}}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"temperature\":0.1,\"maxOutputTokens\":200}}')",
+      "Bash(curl -s -X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w' -H 'Content-Type: application/json' -d '{\"contents\":[{\"parts\":[{\"text\":\"Analizza questo componente. Rispondi SOLO JSON: {\\\\\"boundingBoxes\\\\\":[{\\\\\"x\\\\\":10,\\\\\"y\\\\\":10,\\\\\"w\\\\\":20,\\\\\"h\\\\\":20,\\\\\"label\\\\\":\\\\\"area\\\\\",\\\\\"severity\\\\\":\\\\\"basso\\\\\"}],\\\\\"verdict\\\\\":\\\\\"APPROVATA\\\\\",\\\\\"confidence\\\\\":80,\\\\\"damageType\\\\\":\\\\\"usura normale\\\\\",\\\\\"verdictReason\\\\\":\\\\\"test\\\\\",\\\\\"aiLog\\\\\":[\\\\\"> ok\\\\\"],\\\\\"technicalDetails\\\\\":[\\\\\"test\\\\\"]}\"},{\"inline_data\":{\"mime_type\":\"image/png\",\"data\":\"__TRACKED_VAR__\"}}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"thinkingConfig\":{\"thinkingBudget\":0},\"temperature\":0.2,\"maxOutputTokens\":2048}}')",
+      "Bash(curl -s -X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w' -H 'Content-Type: application/json' -d '{\"contents\":[{\"parts\":[{\"text\":\"Sei un AI assistente operatori. Procedura: Assemblaggio sospensioni. Passo atteso: 3. Avvitare supporto a 120 Nm. Restituisci JSON con currentStep, confidence, highlights \\(max 3 cerchi rx,ry tra 3-8\\), stepGuidance, nextAction, warnings, aiLog\"},{\"inline_data\":{\"mime_type\":\"image/png\",\"data\":\"__TRACKED_VAR__\"}}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"thinkingConfig\":{\"thinkingBudget\":0},\"temperature\":0.2,\"maxOutputTokens\":2048}}')",
+      "Bash(netstat -ano)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\" http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(curl -s \"http://localhost:5173/src/pages/VisualTraining.jsx\")",
+      "Bash(curl -s \"http://localhost:5173/src/pages/RiskMitigation.jsx\")",
+      "Bash(curl -s \"http://localhost:5173/src/components/HologramViewer.jsx\")",
+      "Bash(curl -s \"http://localhost:5173/node_modules/jspdf/dist/jspdf.es.min.js?v=test\" -o /dev/null -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s -X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w' -H 'Content-Type: application/json' -d '{\"contents\":[{\"parts\":[{\"text\":\"Rispondi solo con JSON valido: {\\\\\"status\\\\\":\\\\\"ok\\\\\",\\\\\"test\\\\\":\\\\\"highlights3d\\\\\"}\"}]}],\"generationConfig\":{\"temperature\":0.2,\"maxOutputTokens\":100,\"responseMimeType\":\"application/json\",\"thinkingConfig\":{\"thinkingBudget\":0}}}')",
+      "Bash(curl -s -X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w' -H 'Content-Type: application/json' -d '{\"contents\":[{\"parts\":[{\"text\":\"Rispondi solo con JSON: {\\\\\"highlights\\\\\":[{\\\\\"label\\\\\":\\\\\"TEST\\\\\",\\\\\"nx\\\\\":0.5,\\\\\"ny\\\\\":0.7,\\\\\"nz\\\\\":0.5,\\\\\"color\\\\\":\\\\\"#22c55e\\\\\",\\\\\"hint\\\\\":\\\\\"Test fallback\\\\\"}]}\"}]}],\"generationConfig\":{\"temperature\":0.2,\"maxOutputTokens\":200,\"responseMimeType\":\"application/json\"}}')",
+      "Bash(curl -s -X POST 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=AIzaSyCrCXfRHPC2tqs7olzmo1nIGdA42wYrH5w' -H 'Content-Type: application/json' -d '{\"contents\":[{\"parts\":[{\"text\":\"Rispondi solo: {\\\\\"ok\\\\\":true}\"}]}],\"generationConfig\":{\"temperature\":0,\"maxOutputTokens\":50,\"responseMimeType\":\"application/json\"}}')",
+      "Bash(curl -s \"http://localhost:5173/src/hooks/useGoogleAI.js\")",
+      "Bash(curl -s -o /dev/null -w \"RiskMitigation: %{http_code}\\\\n\" \"http://localhost:5173/src/pages/RiskMitigation.jsx\")",
+      "Bash(curl -s -o /dev/null -w \"VisualTraining: %{http_code}\\\\n\" \"http://localhost:5173/src/pages/VisualTraining.jsx\")",
+      "Bash(curl -s -o /dev/null -w \"HologramViewer: %{http_code}\\\\n\" \"http://localhost:5173/src/components/HologramViewer.jsx\")",
+      "Bash(curl -s -o /dev/null -w \"useGoogleAI:    %{http_code}\\\\n\" \"http://localhost:5173/src/hooks/useGoogleAI.js\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"http://localhost:5173/src/components/HologramViewer.jsx\")",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" \"http://localhost:5173/src/pages/RiskMitigation.jsx\")",
+      "Bash(curl -s http://localhost:5174)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  }
+}

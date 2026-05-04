@@ -1,0 +1,241 @@
+@import "tailwindcss";
+
+/* =========================================
+   VARIABILI GLOBALI (TEMA SCURO DI DEFAULT)
+   ========================================= */
+:root {
+  /* Variabili Tipografiche e Base */
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  /* Variabili Nexus Hub */
+  --color-bg-primary: #0a0e17;
+  --color-bg-secondary: #111827;
+  --color-bg-card: #1a1f2e;
+  --color-bg-card-hover: #232940;
+  --color-accent: #00d4aa;
+  --color-accent-dim: #00a88a;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-success: #22c55e;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-border: #2a3042;
+}
+
+/* =========================================
+   TEMA CHIARO
+   ========================================= */
+:root[data-theme="light"] {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+  --accent-bg: rgba(170, 59, 255, 0.1);
+  --accent-border: rgba(170, 59, 255, 0.5);
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  /* Variabili Nexus Hub (Light) */
+  --color-bg-primary: #f0f2f5;
+  --color-bg-secondary: #e5e7eb;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f8fafc;
+  --color-accent: #00a88a;
+  --color-accent-dim: #008f76;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-success: #16a34a;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-border: #cbd5e1;
+}
+
+/* =========================================
+   TAILWIND BASE LAYER
+   ========================================= */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', var(--sans);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font: 18px/145% var(--sans);
+    letter-spacing: 0.18px;
+    color-scheme: light dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2 {
+    font-family: var(--heading);
+    font-weight: 500;
+    color: var(--text-h);
+  }
+
+  h1 {
+    font-size: 56px;
+    letter-spacing: -1.68px;
+    margin: 32px 0;
+  }
+
+  h2 {
+    font-size: 24px;
+    line-height: 118%;
+    letter-spacing: -0.24px;
+    margin: 0 0 8px;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  code, .counter {
+    font-family: var(--mono);
+    display: inline-flex;
+    border-radius: 4px;
+    color: var(--text-h);
+  }
+
+  code {
+    font-size: 15px;
+    line-height: 135%;
+    padding: 4px 8px;
+    background: var(--code-bg);
+  }
+
+  @media (max-width: 1024px) {
+    body { font-size: 16px; }
+    h1 { font-size: 36px; margin: 20px 0; }
+    h2 { font-size: 20px; }
+  }
+
+  /* Scrollbar personalizzata */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a4060;
+  }
+}
+
+/* =========================================
+   TAILWIND COMPONENTS LAYER
+   ========================================= */
+@layer components {
+  #root {
+    width: 100%;
+    margin: 0 auto;
+    text-align: left; /* Modificato: 'center' rompeva la sidebar */
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  .card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .card-hover {
+    transition: all 0.2s ease;
+  }
+  .card-hover:hover {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 212, 170, 0.1);
+  }
+
+  .glow-accent { box-shadow: 0 0 20px rgba(0, 212, 170, 0.15); }
+  .text-accent { color: var(--color-accent); }
+  .bg-accent { background-color: var(--color-accent); }
+  .border-accent { border-color: var(--color-accent); }
+
+  .status-online { color: var(--color-success); }
+  .status-warning { color: var(--color-warning); }
+  .status-offline { color: var(--color-danger); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dim));
+    color: #0a0e17;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+  }
+
+  .kanban-col {
+    background: linear-gradient(180deg, rgba(26, 31, 46, 0.8) 0%, rgba(26, 31, 46, 0.4) 100%);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    min-width: 220px;
+    padding: 1rem;
+  }
+  :root[data-theme="light"] .kanban-col {
+    background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.7) 100%);
+  }
+
+  .alert-bar {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    color: var(--color-warning);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .leaflet-container {
+    background: var(--color-bg-primary) !important;
+    border-radius: 12px;
+  }
+  :root[data-theme="light"] .leaflet-container {
+    background: #e5e7eb !important;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
