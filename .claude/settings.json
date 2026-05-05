@@ -28,10 +28,38 @@
       "Bash(git init *)",
       "Bash(git config *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(curl -s http://localhost:5175)",
+      "WebSearch",
+      "WebFetch(domain:automazioniservice.com)",
+      "Bash(pkill -f \"npm run dev\")",
+      "Bash(npm run *)",
+      "Bash(node -c /c/Users/frapa/Desktop/nexus/src/pages/VisualTraining.jsx)",
+      "Bash(curl -s \"http://localhost:5174/src/pages/VisualTraining.jsx\")",
+      "Bash(curl -s https://automazioniservice.com/site/wp-content/uploads/2025/03/bnw4.jpg -o /c/Users/frapa/Desktop/nexus/public/images/damage-claims/ticket-402.jpg)",
+      "Bash(curl -s https://automazioniservice.com/site/wp-content/uploads/2021/02/2ok-1.jpg -o /c/Users/frapa/Desktop/nexus/public/images/damage-claims/ticket-398.jpg)",
+      "Bash(curl -s https://automazioniservice.com/site/wp-content/uploads/2020/12/IMG_7626.png -o /c/Users/frapa/Desktop/nexus/public/images/damage-claims/ticket-395.png)",
+      "Bash(curl -s https://automazioniservice.com/site/wp-content/uploads/2020/12/IMM.10-1.jpg -o /c/Users/frapa/Desktop/nexus/public/images/damage-claims/ticket-390.jpg)",
+      "Bash(curl -s https://automazioniservice.com/site/wp-content/uploads/2020/12/IMG_2021ok.jpg -o /c/Users/frapa/Desktop/nexus/public/images/damage-claims/ticket-387.jpg)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5174)",
+      "WebFetch(domain:www.automazioniservice.com)",
+      "Bash(curl -s -L -o ticket-402.jpg \"https://automazioniservice.com/site/wp-content/uploads/2025/03/bnw4.jpg\")",
+      "Bash(curl -s -L -o ticket-398.jpg \"https://automazioniservice.com/site/wp-content/uploads/2021/02/2ok-1.jpg\")",
+      "Bash(curl -s -L -o ticket-395.jpg \"https://automazioniservice.com/site/wp-content/uploads/2020/12/IMG_9438.jpg\")",
+      "Bash(curl -s -L -o ticket-390.png \"https://automazioniservice.com/site/wp-content/uploads/2020/12/20200207_152539ok.png\")",
+      "Bash(curl -s -L -o ticket-387.jpg \"https://automazioniservice.com/site/wp-content/uploads/2020/12/IMG_2021ok.jpg\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/images/damage-claims/ticket-402.jpg)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/images/damage-claims/ticket-395.jpg)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/images/damage-claims/ticket-390.png)",
+      "Bash(timeout 30 tail -f \"C:\\\\Users\\\\frapa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-frapa-Desktop-nexus\\\\6583613c-9b7a-45bb-825a-d9e69703198c\\\\tasks\\\\blh6vu08b.output\")"
     ],
     "additionalDirectories": [
-      "\\tmp"
+      "\\tmp",
+      "C:\\Users\\frapa\\Desktop\\gestionale"
     ]
   }
 }

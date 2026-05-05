@@ -10,7 +10,7 @@ const navItems = [
   { to: '/logistica', icon: Truck, label: 'LOGISTICA' },
   { to: '/acquisti', icon: ShoppingCart, label: 'ACQUISTI' },
   { to: '/magazzino', icon: Warehouse, label: 'MAGAZZINO' },
-  { to: '/digital-twin', icon: MonitorCog, label: 'TWIN SIMULATOR' },
+  { to: '/digital-twin', icon: MonitorCog, label: 'DIGITAL TWIN' },
   { to: '/visual-training', icon: Eye, label: 'AI TRAINING' },
   { to: '/risk-mitigation', icon: AlertTriangle, label: 'RISK MITIGATION' },
 ];

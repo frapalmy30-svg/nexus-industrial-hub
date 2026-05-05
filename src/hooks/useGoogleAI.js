@@ -377,6 +377,8 @@ Fornisci JSON con:
     loading,
     error,
     hasApiKey,
+    callGemini,
+    parseJsonResponse,
     detectDamageBoundingBoxes,
     detectTrainingStep,
     optimizeProduction,

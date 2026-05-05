@@ -4,160 +4,152 @@ import jsPDF from 'jspdf';
 import AlertBar from '../components/AlertBar';
 import { useGoogleAI } from '../hooks/useGoogleAI';
 
-// Foto reali di reclami aperti da impianti industriali
+// Foto reali dal sito ufficiale Automazioni & Service Srl, Piobesi Torino
+// automazioniservice.com — immagini di macchinari reali in officina/stabilimento
 const DAMAGE_IMG = {
-  // #402: Rottura Motore Pneumatico — Manipolatori di carico e movimentazione
-  motorImpact: '/images/damage-claims/ticket-402.jpg',
-  // #398: Vibrazioni Anomale Riduttore — Impianto simulazione manto stradale
-  bearingWear: '/images/damage-claims/ticket-398.png',
-  // #395: Malfunzionamento Pinza Saldatura — Maschere bloccaggio saldatura lamierati
-  electricalBurn: '/images/damage-claims/ticket-395.png',
-  // #390: Perdita Olio Banco Test — Linea assemblaggio sospensioni
-  oilLeak: '/images/damage-claims/ticket-390.jpg',
-  // #387: Deformazione Telaio Stazione — Impianto assestamento sospensioni veicolo
-  frameImpact: '/images/damage-claims/ticket-387.jpg',
+  manipolatore: '/images/damage-claims/ticket-402.jpg',  // Manipolatore BMW: braccio in acciaio con sistema di presa
+  sospensioni:  '/images/damage-claims/ticket-398.jpg',  // Linea sospensioni: struttura pressa con guide e stazioni
+  saldatura:    '/images/damage-claims/ticket-395.jpg',  // Maschera saldatura: fixture lamierati con clamp
+  bancoCicli:   '/images/damage-claims/ticket-390.png',  // Banco rulli: impianto simulazione manto stradale
+  telaioSald:   '/images/damage-claims/ticket-387.jpg',  // Telaio saldatura: struttura portante in acciaio
 };
 
 const tickets = [
   {
     id: '#402',
-    title: 'Rottura Motore Pneumatico',
-    client: 'Stellantis Automoveis (Brasile)',
-    product: 'Motore Pneumatico MP-200',
-    image: DAMAGE_IMG.motorImpact,
+    title: 'Cedimento Giunto Manipolatore BMW',
+    client: 'BMW Group (USA - Spartanburg)',
+    product: 'Manipolatore di Carico MAN-300',
+    image: DAMAGE_IMG.manipolatore,
     date: '2026-04-22',
-    component: 'Albero di trasmissione principale',
-    damageType: 'Urto meccanico contundente',
+    component: 'Giunto rotante braccio principale',
+    damageType: 'Rottura per fatica del perno di rotazione',
     boundingBoxes: [
-      { x: 18, y: 22, w: 25, h: 18, label: 'Segni di urto', severity: 'critico' },
-      { x: 55, y: 35, w: 20, h: 15, label: 'Graffi profondi', severity: 'alto' },
+      { x: 18, y: 30, w: 28, h: 22, label: 'Giunto ceduto', severity: 'critico' },
+      { x: 52, y: 22, w: 20, h: 16, label: 'Perno fessurato', severity: 'alto' },
     ],
     aiLog: [
       '> Inizializzazione scansione LMM (Costo: 0,002 $)...',
-      '> Caricamento modello: visual-damage-detector-v4.1',
-      '> Analisi tolleranze fisiche vs Digital Twin: COMPLETATA',
-      '> Confronto con specifica dimensionale originale: ±0.02mm',
-      '> Rilevamento: Evidenti segni di urto meccanico contundente',
-      '>   non derivanti dal normale ciclo di lavoro.',
-      '> Deformazione albero: 0.35mm (tolleranza max: 0.05mm)',
-      '> Pattern di usura incompatibile con rotazione standard.',
-      '> ESITO CAUSA: Negligenza operatore.',
-      '> Confidenza analisi: 94.7%',
+      '> Caricamento modello: joint-fatigue-detector-v4.1',
+      '> Analisi geometria giunto vs disegno costruttivo: COMPLETATA',
+      '> Gioco rilevato sul perno: 0.8mm (tolleranza max: 0.05mm)',
+      '> Pattern fessurazione: propagazione da cricca da fatica',
+      '>   compatibile con 280.000 cicli oltre vita utile.',
+      '> Nessuna traccia di urto esterno o sovraccarico istantaneo.',
+      '> ESITO CAUSA: Usura ciclo-vita — fine vita utile perno.',
+      '> Confidenza analisi: 93.4%',
     ],
-    verdict: 'RIFIUTATA',
-    verdictReason: 'Danno causato da negligenza operatore — urto meccanico non compatibile con ciclo di lavoro standard',
-    confidence: 94.7,
+    verdict: 'APPROVATA',
+    verdictReason: 'Rottura per fatica ciclo-vita oltre i 280.000 cicli previsti — difetto non imputabile a uso improprio',
+    confidence: 93.4,
   },
   {
     id: '#398',
-    title: 'Vibrazioni Anomale Riduttore',
-    client: 'BMW Group (USA - Spartanburg)',
-    product: 'Riduttore Epicicloidale RE-400',
-    image: DAMAGE_IMG.bearingWear,
+    title: 'Allentamento Guide Linea Sospensioni',
+    client: 'Stellantis Automoveis (Brasile)',
+    product: 'Linea Assemblaggio Sospensioni LAS-200',
+    image: DAMAGE_IMG.sospensioni,
     date: '2026-04-18',
-    component: 'Cuscinetto reggispinta interno',
-    damageType: 'Usura prematura',
+    component: 'Guide prismatiche stazione pressa molla',
+    damageType: 'Usura e gioco eccessivo su guide lineari',
     boundingBoxes: [
-      { x: 30, y: 28, w: 30, h: 22, label: 'Usura cuscinetto', severity: 'medio' },
+      { x: 25, y: 28, w: 30, h: 26, label: 'Gioco guide', severity: 'medio' },
+      { x: 60, y: 42, w: 18, h: 14, label: 'Striscianti usurati', severity: 'medio' },
     ],
     aiLog: [
       '> Inizializzazione scansione LMM (Costo: 0,002 $)...',
-      '> Caricamento modello: bearing-wear-classifier-v3.2',
-      '> Analisi pattern di usura vs cicli di vita attesi: COMPLETATA',
-      '> Ore di funzionamento dichiarate: 2.340h',
-      '> Vita utile attesa cuscinetto: 8.000h (SKF 6308-2RS)',
-      '> Rilevamento: Usura prematura non attribuibile a uso improprio.',
-      '> Possibile lotto difettoso: SKF batch #LT-2025-0892',
-      '> ESITO CAUSA: Difetto componente fornitore.',
-      '> Confidenza analisi: 88.2%',
+      '> Caricamento modello: linear-guide-wear-v3.2',
+      '> Analisi gioco su coppie prismatiche: COMPLETATA',
+      '> Gioco misurato: 0.35mm (tolleranza max: 0.08mm)',
+      '> Analisi lubrificazione: grasso solidificato rilevato.',
+      '> Intervallo lubrificazione: >18 mesi (specifica: 6 mesi).',
+      '> ESITO CAUSA: Mancata manutenzione lubrificazione guide.',
+      '> Confidenza analisi: 87.6%',
     ],
-    verdict: 'APPROVATA',
-    verdictReason: 'Difetto di fabbricazione cuscinetto SKF — usura prematura a 2.340h su vita attesa di 8.000h',
-    confidence: 88.2,
+    verdict: 'RIFIUTATA',
+    verdictReason: 'Manutenzione lubrificazione non eseguita nei tempi — gioco 0.35mm su guide (max 0.08mm ammesso)',
+    confidence: 87.6,
   },
   {
     id: '#395',
-    title: 'Malfunzionamento Pinza Saldatura',
+    title: 'Deformazione Clamp Maschera Saldatura',
     client: 'FCA US LLC (Detroit)',
-    product: 'Pinza Robotica 6-assi PR-600',
-    image: DAMAGE_IMG.electricalBurn,
+    product: 'Maschera Bloccaggio Saldatura MBS-400',
+    image: DAMAGE_IMG.saldatura,
     date: '2026-04-15',
-    component: 'Trasformatore MFDC',
-    damageType: 'Sovraccarico elettrico',
+    component: 'Braccio clamp pneumatico lato sinistro',
+    damageType: 'Deformazione plastica per sovrapressione',
     boundingBoxes: [
-      { x: 20, y: 15, w: 35, h: 25, label: 'Bruciatura trasformatore', severity: 'critico' },
-      { x: 60, y: 50, w: 15, h: 12, label: 'Fusione connettore', severity: 'alto' },
+      { x: 20, y: 22, w: 32, h: 24, label: 'Braccio deformato', severity: 'critico' },
+      { x: 58, y: 46, w: 16, h: 14, label: 'Foro ovalizzato', severity: 'alto' },
     ],
     aiLog: [
       '> Inizializzazione scansione LMM (Costo: 0,002 $)...',
-      '> Caricamento modello: electrical-damage-analyzer-v2.5',
-      '> Analisi termica e pattern di bruciatura: COMPLETATA',
-      '> Corrente nominale trasformatore: 18kA @ 50% duty cycle',
-      '> Rilevamento: Sovraccarico elettrico da uso oltre specifica.',
-      '>   Duty cycle effettivo stimato: 85% (max consentito: 50%)',
-      '>   Temperatura interna stimata: >180°C (max: 120°C)',
-      '> Causa: utilizzo continuativo senza pause di raffreddamento.',
-      '> ESITO CAUSA: Negligenza operatore — uso oltre specifica.',
-      '> Confidenza analisi: 91.3%',
+      '> Caricamento modello: clamp-deformation-analyzer-v2.5',
+      '> Analisi geometria braccio clamp vs CAD: COMPLETATA',
+      '> Deviazione asse perno: 2.1mm (tolleranza: 0.1mm)',
+      '> Pressione operativa impostata: 9.5 bar (max spec: 6 bar)',
+      '> Rilevamento: deformazione da sovrapressione prolungata.',
+      '> ESITO CAUSA: Pressione alimentazione fuori specifica.',
+      '> Confidenza analisi: 92.1%',
     ],
     verdict: 'RIFIUTATA',
-    verdictReason: 'Sovraccarico elettrico da uso oltre specifica — duty cycle 85% vs max consentito 50%',
-    confidence: 91.3,
+    verdictReason: 'Pressione impostata a 9.5 bar vs massimo 6 bar — deformazione per uso improprio non coperta da garanzia',
+    confidence: 92.1,
   },
   {
     id: '#390',
-    title: 'Perdita Olio Banco Test',
-    client: 'IVECO S.p.A. (Torino)',
-    product: 'Banco Iniettori BT-200',
-    image: DAMAGE_IMG.oilLeak,
+    title: 'Usura Rulli Banco Simulazione Stradale',
+    client: 'Audi AG (Ingolstadt)',
+    product: 'Banco Rulli Simulazione Manto Stradale BR-500',
+    image: DAMAGE_IMG.bancoCicli,
     date: '2026-04-10',
-    component: 'Guarnizione alta pressione',
-    damageType: 'Usura normale',
+    component: 'Coppia rulli dinamometrici anteriori',
+    damageType: 'Usura normale superficie rugosa',
     boundingBoxes: [
-      { x: 35, y: 40, w: 22, h: 15, label: 'Guarnizione usurata', severity: 'basso' },
+      { x: 28, y: 36, w: 26, h: 20, label: 'Superficie usurata', severity: 'basso' },
     ],
     aiLog: [
       '> Inizializzazione scansione LMM (Costo: 0,002 $)...',
-      '> Caricamento modello: seal-integrity-checker-v1.8',
-      '> Analisi stato guarnizione vs cicli pressione: COMPLETATA',
-      '> Cicli pressurizzazione effettuati: 45.200',
-      '> Vita attesa guarnizione: 40.000 cicli (Parker Hannifin)',
-      '> Rilevamento: Usura compatibile con ciclo di vita nominale.',
-      '> Nessun segno di uso improprio o sovrapressione.',
-      '> ESITO CAUSA: Usura normale — fine vita utile componente.',
+      '> Caricamento modello: roller-surface-analyzer-v2.1',
+      '> Analisi profilo superficie vs tolleranza Ra: COMPLETATA',
+      '> Rugosità rilevata: Ra 3.8μm (specifica: Ra ≤ 4.0μm)',
+      '> Ore funzionamento: 12.400h (vita attesa: 10.000h)',
+      '> Rilevamento: usura compatibile con fine vita nominale.',
+      '> Nessun segno di uso improprio o sovraccarico.',
+      '> ESITO CAUSA: Fine vita utile componente.',
       '> Confidenza analisi: 96.1%',
     ],
     verdict: 'APPROVATA',
-    verdictReason: 'Usura normale guarnizione — 45.200 cicli su vita attesa di 40.000 cicli',
+    verdictReason: 'Usura normale a fine vita utile — 12.400h su vita attesa 10.000h, nessuna negligenza rilevata',
     confidence: 96.1,
   },
   {
     id: '#387',
-    title: 'Deformazione Telaio Stazione',
+    title: 'Rottura Montante Telaio Portante',
     client: 'NKE Automation (Alpignano)',
-    product: 'Stazione Saldatura S-12',
-    image: DAMAGE_IMG.frameImpact,
+    product: 'Maschera Bloccaggio Lamierati MBL-600',
+    image: DAMAGE_IMG.telaioSald,
     date: '2026-04-05',
-    component: 'Telaio portante in acciaio S355',
-    damageType: 'Urto con muletto',
+    component: 'Montante verticale telaio in acciaio S355',
+    damageType: 'Deformazione da urto con mezzo di movimentazione',
     boundingBoxes: [
-      { x: 10, y: 30, w: 40, h: 30, label: 'Deformazione telaio', severity: 'critico' },
-      { x: 55, y: 20, w: 18, h: 14, label: 'Segni pneumatico', severity: 'medio' },
+      { x: 12, y: 25, w: 36, h: 30, label: 'Montante deformato', severity: 'critico' },
+      { x: 56, y: 16, w: 18, h: 16, label: 'Impronta impatto', severity: 'medio' },
     ],
     aiLog: [
       '> Inizializzazione scansione LMM (Costo: 0,002 $)...',
       '> Caricamento modello: structural-deformation-v3.0',
       '> Analisi deformazione vs carichi di esercizio: COMPLETATA',
-      '> Deformazione rilevata: 12mm su asse Y (tolleranza: 0.5mm)',
-      '> Pattern di deformazione puntiforme — incompatibile con',
-      '>   stress termico o fatica strutturale.',
-      '> Rilevamento: Segni compatibili con urto da mezzo mobile.',
-      '> Tracce di gomma industriale identificate sulla superficie.',
-      '> ESITO CAUSA: Urto accidentale con muletto.',
+      '> Deformazione rilevata: 14mm su asse Y (tolleranza: 0.5mm)',
+      '> Pattern: deformazione puntiforme incompatibile con',
+      '>   stress termico o fatica strutturale da saldatura.',
+      '> Vernice asportata: impronta 180×40mm su montante.',
+      '> ESITO CAUSA: Urto accidentale con carrello elevatore.',
       '> Confidenza analisi: 97.8%',
     ],
     verdict: 'RIFIUTATA',
-    verdictReason: 'Urto accidentale da muletto — deformazione 12mm incompatibile con stress operativo normale',
+    verdictReason: 'Urto carrello elevatore — deformazione 14mm su montante incompatibile con carichi operativi normali',
     confidence: 97.8,
   },
 ];
@@ -466,18 +458,18 @@ export default function RiskMitigation() {
   const aiLogLines = aiResult?.aiLog || [];
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <AlertBar message="ALERT: 2 reclami garanzia in attesa di analisi AI — Coda di elaborazione attiva" />
 
-      <div className="flex items-center gap-2 mb-5">
-        <Shield size={22} className="text-[#00d4aa]" />
+      <div className="flex items-center gap-2 mb-3">
+        <Shield size={20} className="text-[#00d4aa]" />
         <div>
-          <h2 className="text-xl font-bold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>RISK MITIGATION & CLAIMS</h2>
+          <h2 className="text-lg font-bold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>RISK MITIGATION & CLAIMS</h2>
           <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Modalità Post-Vendita · Analisi AI danni · Gestione garanzie</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-4">
         {/* LEFT: Ticket list */}
         <div className="col-span-3 space-y-2">
           <h3 className="text-xs font-bold mb-2" style={{ color: 'var(--color-text-secondary)' }}>RECLAMI APERTI</h3>

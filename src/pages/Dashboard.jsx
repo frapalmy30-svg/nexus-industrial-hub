@@ -65,10 +65,10 @@ export default function Dashboard() {
     <div className="space-y-0">
       <AlertBar message="Automazione - ETA aggiornata +2gg lavorativi" />
 
-      <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="p-4 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* LEFT COLUMN: KANBAN + SUPPLIER RADAR */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* KANBAN OPERATIVO */}
             <div>
               <div className="flex items-center gap-2 mb-1">

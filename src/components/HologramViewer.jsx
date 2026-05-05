@@ -277,8 +277,8 @@ export default function HologramViewer({ machineId, style, highlights = [], auto
 
   return (
     <div ref={mountRef} style={{ width: '100%', height: '100%', background: '#040d1a', position: 'relative', ...style }}>
-      {/* Bottone Pausa Rotazione — solo se highlights visibili */}
-      {projected.length > 0 && (
+      {/* Bottone Pausa Rotazione — solo se highlights visibili e callback disponibile */}
+      {projected.length > 0 && onToggleRotate && (
         <div style={{
           position: 'absolute',
           top: '10px',
@@ -293,9 +293,9 @@ export default function HologramViewer({ machineId, style, highlights = [], auto
               background: autoRotate ? 'rgba(96,165,250,0.2)' : 'rgba(239,68,68,0.2)',
               border: `1px solid ${autoRotate ? 'rgba(96,165,250,0.5)' : 'rgba(239,68,68,0.5)'}`,
               color: autoRotate ? '#60a5fa' : '#ef4444',
-              cursor: 'default',
+              cursor: 'pointer',
             }}
-            title={autoRotate ? 'Rotazione ON — clicca nel viewport per controllare' : 'Rotazione in pausa'}
+            title={autoRotate ? 'Rotazione ON — clicca per mettere in pausa' : 'Rotazione in pausa — clicca per riprendere'}
           >
             <span style={{ display: 'inline-block', width: '1px', height: '1px', marginRight: '0.4rem' }}>●</span>
             {autoRotate ? 'ROT: AUTO' : 'ROT: PAUSA'}
@@ -312,42 +312,72 @@ export default function HologramViewer({ machineId, style, highlights = [], auto
           preserveAspectRatio="none"
         >
           <defs>
-            <filter id="hgGlow"><feGaussianBlur stdDeviation="0.5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+            <filter id="hgGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="0.6" result="b" />
+              <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
           </defs>
           {projected.map((p, i) => {
             if (!p.visible) return null;
             const c = p.color || '#22c55e';
-            // Raggio proporzionale alla profondità: più vicino = più grande (max 3.5%)
             const baseDist = Math.max(1, 5 - p.depth * 2);
-            const r = Math.min(3.5, 1.5 + baseDist * 0.4);
+            const r = Math.min(2.8, 1.2 + baseDist * 0.35);
+
+            // Callout laterale: va a destra se il marker è nella metà sinistra, sinistra altrimenti
+            const goRight = p.sx < 52;
+            const lineLen = 10; // lunghezza segmento orizzontale
+            const chipX = goRight ? p.sx + r + lineLen : p.sx - r - lineLen;
+            const labelTxt = p.label || '';
+            const chipW = Math.max(labelTxt.length * 1.45 + 3, 8);
+            // ancora chip: a destra la chip parte da chipX, a sinistra finisce in chipX
+            const chipLeft = goRight ? chipX : chipX - chipW;
+            // testo centrato dentro il chip
+            const textX = chipLeft + chipW / 2;
+
             return (
               <g key={p.id ?? i}>
-                {/* Anello pulsante esterno luminoso */}
-                <circle cx={p.sx} cy={p.sy} r={r + 1.5} fill="none" stroke={c} strokeWidth="0.22" opacity="0.5" strokeDasharray="0.8 0.6">
-                  <animate attributeName="r" values={`${r + 1};${r + 2.5};${r + 1}`} dur="1.8s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0.3;0.7;0.3" dur="1.8s" repeatCount="indefinite" />
+                {/* Punto centrale preciso: dot + micro crocino, zero fill */}
+                <circle cx={p.sx} cy={p.sy} r={r} fill="none" stroke={c} strokeWidth="0.45" opacity="0.9" filter="url(#hgGlow)">
+                  <animate attributeName="opacity" values="0.65;1;0.65" dur="1.4s" repeatCount="indefinite" />
                 </circle>
-                {/* Cerchio principale con glow */}
-                <circle cx={p.sx} cy={p.sy} r={r} fill={`${c}30`} stroke={c} strokeWidth="0.5" opacity="1" filter="url(#hgGlow)">
-                  <animate attributeName="opacity" values="0.8;1;0.8" dur="1.2s" repeatCount="indefinite" />
+                {/* Piccolo dot pieno al centro */}
+                <circle cx={p.sx} cy={p.sy} r="0.55" fill={c} opacity="0.95" />
+                {/* Micro crocino a 4 linee courtes */}
+                <line x1={p.sx - 1.1} y1={p.sy} x2={p.sx - r - 0.2} y2={p.sy} stroke={c} strokeWidth="0.28" opacity="0.8" />
+                <line x1={p.sx + 1.1} y1={p.sy} x2={p.sx + r + 0.2} y2={p.sy} stroke={c} strokeWidth="0.28" opacity="0.8" />
+                <line x1={p.sx} y1={p.sy - 1.1} x2={p.sx} y2={p.sy - r - 0.2} stroke={c} strokeWidth="0.28" opacity="0.8" />
+                <line x1={p.sx} y1={p.sy + 1.1} x2={p.sx} y2={p.sy + r + 0.2} stroke={c} strokeWidth="0.28" opacity="0.8" />
+
+                {/* Anello pulsante esterno sottilissimo */}
+                <circle cx={p.sx} cy={p.sy} r={r + 1.8} fill="none" stroke={c} strokeWidth="0.18" opacity="0.3">
+                  <animate attributeName="r" values={`${r + 1.2};${r + 2.6};${r + 1.2}`} dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" />
                 </circle>
-                {/* Crocino centrale spesso */}
-                <line x1={p.sx - 0.8} y1={p.sy} x2={p.sx + 0.8} y2={p.sy} stroke={c} strokeWidth="0.35" opacity="1" />
-                <line x1={p.sx} y1={p.sy - 0.8} x2={p.sx} y2={p.sy + 0.8} stroke={c} strokeWidth="0.35" opacity="1" />
-                {/* Etichetta sempre visibile */}
-                {p.label && (
-                  <g>
-                    <rect x={p.sx - p.label.length * 0.7} y={p.sy - r - 3.2} width={p.label.length * 1.4} height="2.2" rx="0.3" fill={`${c}40`} stroke={c} strokeWidth="0.2" opacity="0.95" />
-                    <text x={p.sx} y={p.sy - r - 1.2} textAnchor="middle" fill={c} fontSize="1.8" fontFamily="monospace" fontWeight="bold" style={{ paintOrder: 'stroke', stroke: '#040d1a', strokeWidth: 0.5 }}>
-                      {p.label}
+
+                {/* Linea callout orizzontale dal bordo del cerchio al chip */}
+                {labelTxt && (
+                  <>
+                    <line
+                      x1={goRight ? p.sx + r + 0.3 : p.sx - r - 0.3}
+                      y1={p.sy}
+                      x2={goRight ? p.sx + r + lineLen - 0.5 : p.sx - r - lineLen + 0.5}
+                      y2={p.sy}
+                      stroke={c} strokeWidth="0.25" opacity="0.7"
+                    />
+                    {/* Chip etichetta: bordo colorato, sfondo quasi trasparente */}
+                    <rect
+                      x={chipLeft} y={p.sy - 1.6}
+                      width={chipW} height="3.1" rx="0.45"
+                      fill="rgba(4,13,26,0.72)" stroke={c} strokeWidth="0.28" opacity="0.95"
+                    />
+                    <text
+                      x={textX} y={p.sy + 0.85}
+                      textAnchor="middle" fill={c} fontSize="1.85"
+                      fontFamily="monospace" fontWeight="bold" opacity="1"
+                    >
+                      {labelTxt}
                     </text>
-                  </g>
-                )}
-                {/* Hint sempre visibile sotto il cerchio */}
-                {p.hint && (
-                  <text x={p.sx} y={p.sy + r + 2.5} textAnchor="middle" fill={c} fontSize="1.4" fontFamily="monospace" fontWeight="600" opacity="1" style={{ paintOrder: 'stroke', stroke: '#040d1a', strokeWidth: 0.4 }}>
-                    {p.hint.length > 50 ? p.hint.slice(0, 45) + '…' : p.hint}
-                  </text>
+                  </>
                 )}
               </g>
             );

@@ -1,31 +1,20 @@
-import { useState, useEffect } from 'react';
-import { Eye, Clock, ChevronRight, ChevronLeft, Target, CheckCircle, Play, Globe, Phone, Box, Loader2, Sparkles } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Eye, Clock, ChevronRight, ChevronLeft, Target, CheckCircle, Play, Globe, Phone, Box, Loader2, Sparkles, Lock, Unlock, MessageCircle, Send } from 'lucide-react';
 import AlertBar from '../components/AlertBar';
 import HologramViewer from '../components/HologramViewer';
 import { useGoogleAI } from '../hooks/useGoogleAI';
 
 const plants = [
-  { id: 'BMW-SPART', name: 'Linea assemblaggio sospensioni PHEV — BMW Spartanburg', country: 'USA', lang: 'EN', asProduct: 'Linea Assemblaggio Sospensioni', machineId: 'sospensioni' },
-  { id: 'STELL-BETIM', name: 'Maschera bloccaggio e saldatura lamierati — Stellantis Betim', country: 'Brasile', lang: 'PT', asProduct: 'Maschera Saldatura Lamierati', machineId: 'maschera' },
-  { id: 'NKE-ALPI', name: 'Banco calibrazione sistemi ADAS — NKE Automation Alpignano', country: 'Italia', lang: 'IT', asProduct: 'Banco Calibrazione ADAS', machineId: 'adas' },
-  { id: 'FCA-KRAGU', name: 'Banco assemblaggio e avvitatura — FCA Srbija Kragujevac', country: 'Serbia', lang: 'EN', asProduct: 'Banco Assemblaggio Avvitatura', machineId: 'avvitatura' },
-  { id: 'IVECO-TO', name: 'Calibri di controllo dimensionale — IVECO Torino', country: 'Italia', lang: 'IT', asProduct: 'Calibri di Controllo', machineId: 'calibri' },
-  { id: 'STELL-MIRA', name: 'Impianti applicazione sigle e modanature — Stellantis Mirafiori', country: 'Italia', lang: 'IT', asProduct: 'Impianti Sigle e Modanature', machineId: 'sigle' },
-  { id: 'FCA-MELFI', name: 'Attrezzi montaggio parti mobili (ferratura) — FCA Melfi', country: 'Italia', lang: 'IT', asProduct: 'Attrezzi Montaggio Parti Mobili', machineId: 'montaggio' },
-  { id: 'AUDI-ING', name: 'Impianto simulazione manto stradale (banco rulli) — Audi Ingolstadt', country: 'Germania', lang: 'EN', asProduct: 'Banco Rulli Simulazione Manto Stradale', machineId: 'simulazione' },
+  { id: 'BMW-SPART', name: 'Ganci di Sollevamento', country: 'USA', lang: 'EN', asProduct: 'Ganci Sollevamento', machineId: 'adas' },
+  { id: 'STELL-BETIM', name: 'Banchi di Assemblaggio e Avvitatura', country: 'Brasile', lang: 'PT', asProduct: 'Banchi Avvitatura', machineId: 'sospensioni' },
+  { id: 'NKE-ALPI', name: 'Attrezzi di Montaggio Parti Mobili (Ferratura)', country: 'Italia', lang: 'IT', asProduct: 'Attrezzi Montaggio', machineId: 'avvitatura' },
+  { id: 'FCA-KRAGU', name: 'Linea Assemblaggio Sospensioni PHEV', country: 'Serbia', lang: 'EN', asProduct: 'Linea Sospensioni', machineId: 'calibri' },
+  { id: 'IVECO-TO', name: 'Impianti di Applicazione e Compressione Sigle e Modanature su Veicolo', country: 'Italia', lang: 'IT', asProduct: 'Impianti Sigle', machineId: 'sigle' },
+  { id: 'STELL-MIRA', name: 'Maschere di Bloccaggio e Saldatura Lamierati', country: 'Italia', lang: 'IT', asProduct: 'Maschere Saldatura', machineId: 'montaggio' },
+  { id: 'FCA-MELFI', name: 'Calibri di Controllo', country: 'Italia', lang: 'IT', asProduct: 'Calibri Controllo', machineId: 'simulazione' },
+  { id: 'AUDI-ING', name: 'Banchi di Calibrazione Sistemi ADAS', country: 'Germania', lang: 'EN', asProduct: 'Banchi Calibrazione ADAS', machineId: 'maschera' },
 ];
 
-const H = '/images/machines/holo/';
-const plantImages = {
-  'BMW-SPART':  [H+'linea assemblaggio sospensioni 3d.jpeg', H+'impianto di assestamento sospensioni veicolo.jpeg'],
-  'STELL-BETIM':[H+'maschere di bloccaggio saldatura lamierati 3d.jpeg'],
-  'NKE-ALPI':   [H+'banchi di calibrazione sistemi adas 3d.jpeg'],
-  'FCA-KRAGU':  [H+'banchi di assemblaggio e avvitatura 3d.jpeg'],
-  'IVECO-TO':   [H+'calibri di controllo 3d.jpeg'],
-  'STELL-MIRA': [H+'impianti di applicazione e compressione sigle e modanature su veicolo.jpeg'],
-  'FCA-MELFI':  [H+'Attrezzi di montaggio parti mobili (ferratura) 3d.jpg', H+'attrezzi leggeri di geometria(carbonio) 3d.jpeg'],
-  'AUDI-ING':   [H+'impianto di simulazione manto stradale( banco a rulli).jpeg'],
-};
 
 const plantProcedures = {
   'BMW-SPART': {
@@ -33,13 +22,13 @@ const plantProcedures = {
     component: 'Linea Assemblaggio Sospensioni PHEV',
     cadOverlay: 'Linea Assemblaggio Sospensioni PHEV — Modello CAD v14.2',
     steps: [
-      { step: 1, it: 'Posizionare molla elicoidale sulla pressa (18.5 kN)', en: 'Position coil spring on the press (18.5 kN)', pt: 'Posicione a mola helicoidal na prensa (18.5 kN)', time: '2 min' },
-      { step: 2, it: 'Inserire ammortizzatore nel corpo centrale e allineare', en: 'Insert shock absorber into central body and align', pt: 'Insira o amortecedor no corpo central e alinhe', time: '3 min' },
-      { step: 3, it: 'Avvitare supporto superiore a 120 Nm (±2%)', en: 'Tighten upper mount to 120 Nm (±2%)', pt: 'Aperte o suporte superior a 120 Nm (±2%)', time: '3 min' },
-      { step: 4, it: 'Verificare allineamento laser braccio (offset max 0.1mm)', en: 'Verify laser arm alignment (max offset 0.1mm)', pt: 'Verifique o alinhamento laser do braço (offset máx 0.1mm)', time: '4 min' },
-      { step: 5, it: 'Collegare sensore corsa ammortizzatore (range 0-320mm)', en: 'Connect shock absorber stroke sensor (range 0-320mm)', pt: 'Conecte o sensor de curso do amortecedor (faixa 0-320mm)', time: '2 min' },
-      { step: 6, it: 'Riempire circuito olio assestamento (max 65°C)', en: 'Fill settling oil circuit (max 65°C)', pt: 'Preencha o circuito de óleo de assentamento (máx 65°C)', time: '3 min' },
-      { step: 7, it: 'Test funzionale completo con PLC Siemens S7-1500', en: 'Complete functional test with Siemens S7-1500 PLC', pt: 'Teste funcional completo com CLP Siemens S7-1500', time: '4 min' },
+      { step: 1, it: 'Caricare molla elicoidale sulla pressa idraulica (forza pressa 18.5 kN ±0.2 kN) — centrare sull\'asse verticale, verificare assenza di torsioni', en: 'Load coil spring onto hydraulic press (18.5 kN ±0.2 kN) — center on vertical axis, check no torsion', pt: 'Carregar mola helicoidal na prensa hidráulica (18.5 kN ±0.2 kN) — centralizar no eixo vertical', time: '2 min' },
+      { step: 2, it: 'Inserire stelo ammortizzatore nel corpo pressa dal basso, allineare foro centrale Ø42 mm — tolleranza assiale ±0.5 mm', en: 'Insert shock absorber rod into press body from below, align central bore Ø42 mm — axial tolerance ±0.5 mm', pt: 'Inserir haste do amortecedor no corpo da prensa, alinhar furo central Ø42 mm', time: '3 min' },
+      { step: 3, it: 'Serrare dado supporto superiore con chiave dinamometrica a 120 Nm (±2%) — sequenza a croce, 3 passaggi progressivi', en: 'Tighten upper mount nut to 120 Nm (±2%) — cross pattern, 3 progressive passes', pt: 'Apertar porca do suporte superior a 120 Nm (±2%) — sequência em cruz, 3 passagens', time: '3 min' },
+      { step: 4, it: 'Verificare allineamento braccio con sistema laser integrato — offset max 0.1 mm su asse X e Y, registrare su foglio controllo', en: 'Verify arm alignment with integrated laser system — max offset 0.1 mm on X and Y axis, record on control sheet', pt: 'Verificar alinhamento do braço com sistema laser — offset máx 0.1 mm nos eixos X e Y', time: '4 min' },
+      { step: 5, it: 'Collegare sensore corsa ammortizzatore (connettore M12×1, 4 pin) — range operativo 0–320 mm, orientare freccia verso l\'alto', en: 'Connect stroke sensor (M12×1, 4-pin connector) — operating range 0–320 mm, arrow pointing up', pt: 'Conectar sensor de curso (conector M12×1, 4 pinos) — faixa 0–320 mm, seta para cima', time: '2 min' },
+      { step: 6, it: 'Riempire circuito olio assestamento tramite valvola 3/8" — volume 0.8 L, temperatura olio max 65°C, chiudere valvola sfera al raggiungimento', en: 'Fill settling oil circuit via 3/8" valve — volume 0.8 L, max oil temp 65°C, close ball valve on reaching temp', pt: 'Preencher circuito de óleo via válvula 3/8" — volume 0.8 L, temperatura máx 65°C', time: '3 min' },
+      { step: 7, it: 'Avviare ciclo TEST_OK su HMI Siemens Comfort Panel — PLC S7-1500 esegue 3 cicli completi, verificare spia verde e assenza allarmi', en: 'Start TEST_OK cycle on Siemens Comfort Panel HMI — S7-1500 PLC runs 3 full cycles, check green light and no alarms', pt: 'Iniciar ciclo TEST_OK no painel HMI Siemens Comfort — PLC S7-1500 executa 3 ciclos completos', time: '4 min' },
     ],
   },
   'STELL-BETIM': {
@@ -47,12 +36,12 @@ const plantProcedures = {
     component: 'Maschera Bloccaggio Lamierati M-200',
     cadOverlay: 'Maschera Bloccaggio e Saldatura Lamierati — Modello CAD v2.8',
     steps: [
-      { step: 1, it: 'Posizionare il lamierato sulla maschera di bloccaggio', en: 'Position the sheet metal on the clamping jig', pt: 'Posicione a chapa na máscara de fixação', time: '2 min' },
-      { step: 2, it: 'Attivare i 12 clamp pneumatici in sequenza (6 bar)', en: 'Activate the 12 pneumatic clamps in sequence (6 bar)', pt: 'Ative os 12 grampos pneumáticos em sequência (6 bar)', time: '3 min' },
-      { step: 3, it: 'Verificare allineamento staffaggi con comparatore centesimale', en: 'Verify jig alignment with dial indicator (0.01mm)', pt: 'Verifique o alinhamento dos gabaritos com comparador centesimal', time: '5 min' },
-      { step: 4, it: 'Inserire punte elettrodi Cu-Cr e avviare trasformatore MFDC', en: 'Insert Cu-Cr electrode tips and start MFDC transformer', pt: 'Insira as pontas de eletrodo Cu-Cr e inicie o transformador MFDC', time: '4 min' },
-      { step: 5, it: 'Eseguire ciclo di saldatura a punti (12.5 kA) secondo ISO 14373', en: 'Execute spot welding cycle (12.5 kA) per ISO 14373', pt: 'Execute ciclo de solda a ponto (12.5 kA) conforme ISO 14373', time: '8 min' },
-      { step: 6, it: 'Controllo visivo e prova a strappo su campione', en: 'Visual inspection and peel test on sample', pt: 'Inspeção visual e teste de arrancamento em amostra', time: '4 min' },
+      { step: 1, it: 'Appoggiare il lamierato sui 3 perni di centraggio Ø12 mm — verificare flush ±0.3 mm con piano di riferimento', en: 'Rest sheet metal on 3 Ø12 mm locating pins — verify flush ±0.3 mm with reference plane', pt: 'Apoiar chapa nos 3 pinos de centragem Ø12 mm — verificar flush ±0.3 mm', time: '2 min' },
+      { step: 2, it: 'Attivare i 12 clamp pneumatici in sequenza SX→DX a 6 bar costanti — udire il clic di chiusura di ciascun clamp', en: 'Activate 12 pneumatic clamps in L→R sequence at constant 6 bar — listen for closure click on each clamp', pt: 'Ativar 12 grampos pneumáticos em sequência E→D a 6 bar constantes', time: '3 min' },
+      { step: 3, it: 'Verificare allineamento staffaggi con comparatore centesimale — bolla a zero, tolleranza ±0.01 mm su tutti i riferimenti', en: 'Check jig alignment with dial indicator — zero bubble, ±0.01 mm tolerance on all reference points', pt: 'Verificar alinhamento dos gabaritos com comparador centesimal — ±0.01 mm', time: '5 min' },
+      { step: 4, it: 'Inserire punte elettrodi Cu-Cr (Ø6 mm, usura < 30%) — avviare trasformatore MFDC 50 Hz, precaricare a 1.5 kN', en: 'Insert Cu-Cr electrode tips (Ø6 mm, wear < 30%) — start MFDC 50 Hz transformer, preload to 1.5 kN', pt: 'Inserir pontas de eletrodo Cu-Cr (Ø6 mm, desgaste < 30%) — iniciar transformador MFDC 50 Hz', time: '4 min' },
+      { step: 5, it: 'Eseguire ciclo saldatura a punti: 12.5 kA × 200 ms, forza 4 kN — rispettare ISO 14373, mantenere struttura ferma durante impulso', en: 'Execute spot welding cycle: 12.5 kA × 200 ms, force 4 kN — per ISO 14373, keep structure still during pulse', pt: 'Executar ciclo de solda: 12.5 kA × 200 ms, força 4 kN — conforme ISO 14373', time: '8 min' },
+      { step: 6, it: 'Eseguire controllo visivo punti saldatura e prova a strappo (min 1500 N) su campione ogni 50 pezzi prodotti', en: 'Visual inspection of weld spots and peel test (min 1500 N) on sample every 50 produced parts', pt: 'Inspeção visual dos pontos de solda e teste de arrancamento (mín 1500 N) a cada 50 peças', time: '4 min' },
     ],
   },
   'NKE-ALPI': {
@@ -60,11 +49,11 @@ const plantProcedures = {
     component: 'Banco Calibrazione ADAS BC-300',
     cadOverlay: 'Banco Calibrazione Sistemi ADAS — Modello CAD v3.1',
     steps: [
-      { step: 1, it: 'Posizionare veicolo su piattaforma calibrazione allineata', en: 'Position vehicle on aligned calibration platform', pt: 'Posicione o veículo na plataforma de calibração alinhada', time: '5 min' },
-      { step: 2, it: 'Posizionare target riflettente motorizzato a 4.0m ± 5mm', en: 'Position motorized reflective target at 4.0m ± 5mm', pt: 'Posicione o alvo refletivo motorizado a 4.0m ± 5mm', time: '3 min' },
-      { step: 3, it: 'Avviare calibrazione telecamera frontale ADAS via ECU', en: 'Start front ADAS camera calibration via ECU', pt: 'Inicie calibração da câmera frontal ADAS via ECU', time: '8 min' },
-      { step: 4, it: 'Verificare allineamento radar LRR 77 GHz (tolleranza 0.2°)', en: 'Verify LRR 77 GHz radar alignment (tolerance 0.2°)', pt: 'Verifique o alinhamento do radar LRR 77 GHz (tolerância 0.2°)', time: '6 min' },
-      { step: 5, it: 'Eseguire test su strada virtuale con pannello LED pattern', en: 'Execute virtual road test with LED pattern panel', pt: 'Execute teste em estrada virtual com painel de padrão LED', time: '10 min' },
+      { step: 1, it: 'Posizionare veicolo su piattaforma con piatti allineatori — asse anteriore a 0.0°, verificare livella bolla su 4 punti di contatto', en: 'Position vehicle on platform with aligning plates — front axle at 0.0°, check bubble level on 4 contact points', pt: 'Posicionar veículo na plataforma com pratos alinhadores — eixo dianteiro a 0.0°', time: '5 min' },
+      { step: 2, it: 'Posizionare target riflettente motorizzato a 4000 mm ±5 mm dal paraurti anteriore — altezza target = altezza telecamera ±10 mm', en: 'Position motorized reflective target at 4000 mm ±5 mm from front bumper — target height = camera height ±10 mm', pt: 'Posicionar alvo refletivo motorizado a 4000 mm ±5 mm do pára-choque', time: '3 min' },
+      { step: 3, it: 'Connettere OBD-II, avviare routine CAL_CAM_01 sull\'ECU — attesa calibrazione ~8 min, non muovere veicolo durante il processo', en: 'Connect OBD-II, start CAL_CAM_01 routine on ECU — calibration wait ~8 min, do not move vehicle during process', pt: 'Conectar OBD-II, iniciar rotina CAL_CAM_01 na ECU — aguardar ~8 min', time: '8 min' },
+      { step: 4, it: 'Verificare allineamento radar LRR 77 GHz: azimuth < 0.2°, elevazione ±0.1° — regolare viti di targeting se fuori tolleranza', en: 'Verify LRR 77 GHz radar alignment: azimuth < 0.2°, elevation ±0.1° — adjust targeting screws if out of tolerance', pt: 'Verificar alinhamento do radar LRR 77 GHz: azimute < 0.2°, elevação ±0.1°', time: '6 min' },
+      { step: 5, it: 'Avviare test strada virtuale con pannello LED pattern: 2400 lux costanti, 30 secondi, verificare output diagnostico ECU', en: 'Start virtual road test with LED pattern panel: constant 2400 lux, 30 seconds, verify ECU diagnostic output', pt: 'Iniciar teste de estrada virtual com painel LED: 2400 lux constantes, 30 segundos', time: '10 min' },
     ],
   },
   'FCA-KRAGU': {
@@ -72,11 +61,11 @@ const plantProcedures = {
     component: 'Banco Assemblaggio Avvitatura BAV-100',
     cadOverlay: 'Banco Assemblaggio e Avvitatura — Modello CAD v1.9',
     steps: [
-      { step: 1, it: 'Posizionare componente sul banco con fixture dedicata', en: 'Position component on bench with dedicated fixture', pt: 'Posicione o componente no banco com fixação dedicada', time: '2 min' },
-      { step: 2, it: 'Selezionare programma avvitatura su HMI (coppia 5-25 Nm)', en: 'Select screwing program on HMI (torque 5-25 Nm)', pt: 'Selecione o programa de aparafusamento no HMI (torque 5-25 Nm)', time: '1 min' },
-      { step: 3, it: 'Avvitare con braccio bilanciato pneumatico Desoutter CVI3', en: 'Screw with Desoutter CVI3 pneumatic balanced arm', pt: 'Aparafuse com braço balanceado pneumático Desoutter CVI3', time: '4 min' },
-      { step: 4, it: 'Verificare coppia tramite sensore reattivo e sistema Poka-Yoke', en: 'Verify torque via reactive sensor and Poka-Yoke system', pt: 'Verifique o torque via sensor reativo e sistema Poka-Yoke', time: '3 min' },
-      { step: 5, it: 'Scansionare barcode Cognex e validare tracciabilità', en: 'Scan Cognex barcode and validate traceability', pt: 'Escaneie código de barras Cognex e valide rastreabilidade', time: '1 min' },
+      { step: 1, it: 'Inserire componente nella fixture dedicata — clic sul perno Ø8 di riferimento, verificare flush con piano ±0.2 mm', en: 'Insert component into dedicated fixture — click onto Ø8 reference pin, check flush with plane ±0.2 mm', pt: 'Inserir componente na fixação dedicada — encaixar no pino de referência Ø8 mm', time: '2 min' },
+      { step: 2, it: 'Selezionare programma P12 su HMI touchscreen — coppia target 18 Nm ±0.5%, velocità 450 rpm, angolo max 720°', en: 'Select program P12 on touchscreen HMI — target torque 18 Nm ±0.5%, speed 450 rpm, max angle 720°', pt: 'Selecionar programa P12 no HMI touchscreen — torque alvo 18 Nm ±0.5%, velocidade 450 rpm', time: '1 min' },
+      { step: 3, it: 'Avvitare con Desoutter CVI3 (braccio bilanciato pneumatico) — grilletto continuo 2 s, non rilasciare prima del beep di conferma', en: 'Screw with Desoutter CVI3 (pneumatic balanced arm) — continuous trigger 2 s, do not release before confirmation beep', pt: 'Apertar com Desoutter CVI3 (braço balanceado pneumático) — gatilho contínuo 2 s', time: '4 min' },
+      { step: 4, it: 'Verificare spia Poka-Yoke: verde = sequenza e coppia OK, rossa = stop forzato e rework obbligatorio prima di procedere', en: 'Check Poka-Yoke light: green = sequence and torque OK, red = forced stop, rework required before proceeding', pt: 'Verificar luz Poka-Yoke: verde = sequência e torque OK, vermelho = parada forçada', time: '3 min' },
+      { step: 5, it: 'Scansionare DataMatrix con lettore Cognex fisso — beep singolo = tracciabilità OK, doppio beep = errore, ripetere scansione', en: 'Scan DataMatrix with fixed Cognex reader — single beep = traceability OK, double beep = error, repeat scan', pt: 'Escanear DataMatrix com leitor Cognex fixo — bipe simples = rastreabilidade OK', time: '1 min' },
     ],
   },
   'IVECO-TO': {
@@ -84,11 +73,11 @@ const plantProcedures = {
     component: 'Calibri di Controllo Dimensionale CC-200',
     cadOverlay: 'Calibri di Controllo — Modello CAD v2.4',
     steps: [
-      { step: 1, it: 'Posizionare il pezzo sul piano di controllo termostatato (20°C ±0.5)', en: 'Place the part on the thermostatically controlled inspection plate (20°C ±0.5)', pt: 'Coloque a peça no plano de controle termostático (20°C ±0.5)', time: '2 min' },
-      { step: 2, it: 'Selezionare calibro temprato classe 0 corrispondente alla quota nominale', en: 'Select Class 0 hardened gauge matching nominal dimension', pt: 'Selecione o calibre temperado classe 0 correspondente à cota nominal', time: '1 min' },
-      { step: 3, it: 'Misurare quota con corsoio mobile (risoluzione 0.002 mm)', en: 'Measure dimension with mobile slider (resolution 0.002 mm)', pt: 'Meça a cota com cursor móvel (resolução 0.002 mm)', time: '3 min' },
-      { step: 4, it: 'Leggere valore su nonio digitale e registrare nel certificato', en: 'Read value on digital vernier and record in certificate', pt: 'Leia o valor no nônio digital e registre no certificado', time: '2 min' },
-      { step: 5, it: 'Verificare conformità entro tolleranza ISO 286 IT6', en: 'Verify compliance within ISO 286 IT6 tolerance', pt: 'Verifique conformidade dentro da tolerância ISO 286 IT6', time: '2 min' },
+      { step: 1, it: 'Posare il pezzo sul piano termostatato (20°C ±0.5°C) — attendere stabilizzazione termica segnalata dalla spia verde (min 5 min)', en: 'Place part on thermostatically controlled plate (20°C ±0.5°C) — wait for thermal stabilization indicated by green light (min 5 min)', pt: 'Colocar peça no plano termostático (20°C ±0.5°C) — aguardar estabilização térmica (mín 5 min)', time: '2 min' },
+      { step: 2, it: 'Selezionare calibro temprato Classe 0 corrispondente alla quota nominale — registrare n° lotto sul foglio di controllo qualità', en: 'Select Class 0 hardened gauge matching nominal dimension — record batch number on quality control sheet', pt: 'Selecionar calibre temperado Classe 0 correspondente à cota nominal — registrar n° lote', time: '1 min' },
+      { step: 3, it: 'Misurare quota con corsoio mobile (risoluzione 0.002 mm) — movimento lento e uniforme, forza di contatto < 0.5 N', en: 'Measure dimension with sliding jaw (resolution 0.002 mm) — slow uniform movement, contact force < 0.5 N', pt: 'Medir cota com cursor deslizante (resolução 0.002 mm) — movimento lento e uniforme', time: '3 min' },
+      { step: 4, it: 'Leggere valore su display nonio digitale e premere HOLD — trascrivere sul certificato di misura con firma operatore', en: 'Read value on digital vernier display and press HOLD — transcribe to measurement certificate with operator signature', pt: 'Ler valor no display do nônio digital, pressionar HOLD — registrar no certificado de medição', time: '2 min' },
+      { step: 5, it: 'Confrontare valore misurato con tolleranza ISO 286 IT6 — per Ø18: campo ±0.011 mm; apporre timbro CONFORME o SCARTO', en: 'Compare measured value with ISO 286 IT6 tolerance — for Ø18: range ±0.011 mm; stamp CONFORM or REJECT', pt: 'Comparar valor medido com tolerância ISO 286 IT6 — para Ø18: faixa ±0.011 mm', time: '2 min' },
     ],
   },
   'STELL-MIRA': {
@@ -96,12 +85,12 @@ const plantProcedures = {
     component: 'Impianto Sigle e Modanature SM-150',
     cadOverlay: 'Impianti Applicazione Sigle e Modanature — Modello CAD v3.7',
     steps: [
-      { step: 1, it: 'Posizionare la modanatura sul telaio di alimentazione', en: 'Place molding on feed frame', pt: 'Posicione a moldura no quadro de alimentação', time: '2 min' },
-      { step: 2, it: 'Allineare laser di posizionamento (precisione ±0.2 mm)', en: 'Align positioning laser (precision ±0.2 mm)', pt: 'Alinhe o laser de posicionamento (precisão ±0.2 mm)', time: '3 min' },
-      { step: 3, it: 'Attivare ventose di presa (depressione -0.9 bar)', en: 'Activate suction cups (vacuum -0.9 bar)', pt: 'Ative as ventosas (vácuo -0.9 bar)', time: '2 min' },
-      { step: 4, it: 'Avviare attuatore lineare di applicazione (corsa 250 mm)', en: 'Start linear application actuator (stroke 250 mm)', pt: 'Acione o atuador linear de aplicação (curso 250 mm)', time: '3 min' },
-      { step: 5, it: 'Comprimere modanatura sul veicolo per 8 secondi (forza 350 N)', en: 'Compress molding onto vehicle for 8 seconds (force 350 N)', pt: 'Comprima a moldura no veículo por 8 segundos (força 350 N)', time: '1 min' },
-      { step: 6, it: 'Verificare adesione su PLC di controllo (ciclo 8 ms)', en: 'Verify adhesion on control PLC (cycle 8 ms)', pt: 'Verifique a adesão no PLC de controle (ciclo 8 ms)', time: '2 min' },
+      { step: 1, it: 'Caricare modanatura sul telaio di alimentazione — guide rulli parallele al bordo veicolo, allineamento ±1 mm', en: 'Load molding onto feed frame — roller guides parallel to vehicle edge, alignment ±1 mm', pt: 'Carregar moldura no quadro de alimentação — guias de rolos paralelas à borda do veículo', time: '2 min' },
+      { step: 2, it: 'Allineare laser di posizionamento (precisione ±0.2 mm) — croce rossa centrata sul foro target Ø6 mm della carrozzeria', en: 'Align positioning laser (precision ±0.2 mm) — red cross centered on Ø6 mm target hole in bodywork', pt: 'Alinhar laser de posicionamento (precisão ±0.2 mm) — cruz vermelha centrada no furo alvo Ø6 mm', time: '3 min' },
+      { step: 3, it: 'Attivare le 6 ventose di presa a -0.9 bar — manometro deve stabilizzarsi sotto -0.85 bar, spia rossa prima del sollevamento', en: 'Activate 6 suction cups at -0.9 bar — gauge must stabilize below -0.85 bar, red light before lifting', pt: 'Ativar 6 ventosas a -0.9 bar — manômetro deve estabilizar abaixo de -0.85 bar', time: '2 min' },
+      { step: 4, it: 'Avviare attuatore lineare (corsa 250 mm, velocità 80 mm/s) — verifica posizione finale su encoder integrato ±0.5 mm', en: 'Start linear actuator (stroke 250 mm, speed 80 mm/s) — verify end position on integrated encoder ±0.5 mm', pt: 'Acionar atuador linear (curso 250 mm, velocidade 80 mm/s) — verificar posição final no encoder', time: '3 min' },
+      { step: 5, it: 'Comprimere modanatura sul veicolo: forza 350 N per 8 s — non rilasciare prima del beep OK, temperatura adesivo 23°C ±2°C', en: 'Compress molding onto vehicle: 350 N for 8 s — do not release before OK beep, adhesive temperature 23°C ±2°C', pt: 'Comprimir moldura no veículo: 350 N por 8 s — não soltar antes do bipe OK', time: '1 min' },
+      { step: 6, it: 'Verificare adesione su PLC controllo (ciclo scan 8 ms) — LED verde "ADHESION OK" e valore forza > 320 N confermati', en: 'Verify adhesion on control PLC (8 ms scan cycle) — green LED "ADHESION OK" and force value > 320 N confirmed', pt: 'Verificar adesão no PLC de controle (ciclo de scan 8 ms) — LED verde "ADHESION OK"', time: '2 min' },
     ],
   },
   'FCA-MELFI': {
@@ -109,12 +98,12 @@ const plantProcedures = {
     component: 'Attrezzo Ferratura Parti Mobili AFP-300',
     cadOverlay: 'Attrezzi Montaggio Parti Mobili — Modello CAD v4.1',
     steps: [
-      { step: 1, it: 'Posizionare la porta sulla guida lineare di precisione (±0.01 mm)', en: 'Position the door on the precision linear guide (±0.01 mm)', pt: 'Posicione a porta na guia linear de precisão (±0.01 mm)', time: '3 min' },
-      { step: 2, it: 'Regolare il supporto ergonomico in altezza per l\'operatore', en: 'Adjust ergonomic support height for operator', pt: 'Ajuste a altura do suporte ergonômico para o operador', time: '2 min' },
-      { step: 3, it: 'Attivare bloccaggio rapido (forza 500 N)', en: 'Activate quick clamp (force 500 N)', pt: 'Ative a fixação rápida (força 500 N)', time: '1 min' },
-      { step: 4, it: 'Avvitare cerniere superiore e inferiore secondo sequenza CAD', en: 'Tighten upper and lower hinges per CAD sequence', pt: 'Aperte as dobradiças superior e inferior conforme sequência CAD', time: '5 min' },
-      { step: 5, it: 'Verificare tramite sensore di contatto la posizione delle cerniere', en: 'Verify hinge position via contact sensor', pt: 'Verifique a posição das dobradiças pelo sensor de contato', time: '2 min' },
-      { step: 6, it: 'Eseguire prova di apertura/chiusura porta (5 cicli)', en: 'Perform door open/close test (5 cycles)', pt: 'Realize teste de abertura/fechamento da porta (5 ciclos)', time: '3 min' },
+      { step: 1, it: 'Posizionare porta sulla guida lineare di precisione (gioco max 0.01 mm) — verificare scorrimento senza resistenze con comparatore', en: 'Position door on precision linear guide (max clearance 0.01 mm) — verify smooth sliding with dial indicator', pt: 'Posicionar porta na guia linear de precisão (folga máx 0.01 mm)', time: '3 min' },
+      { step: 2, it: 'Regolare supporto ergonomico in altezza — manopola verde, quota gomito operatore ±50 mm, bloccare con dado M16', en: 'Adjust ergonomic support height — green knob, operator elbow height ±50 mm, lock with M16 nut', pt: 'Ajustar suporte ergonômico em altura — manopola verde, cota cotovelo ±50 mm', time: '2 min' },
+      { step: 3, it: 'Attivare bloccaggio rapido (500 N) — portare leva in basso fino al clic di fine corsa, verificare immobilità porta', en: 'Activate quick clamp (500 N) — pull lever down to end-of-stroke click, verify door immobility', pt: 'Ativar fixação rápida (500 N) — abaixar alavanca até o clique de fim de curso', time: '1 min' },
+      { step: 4, it: 'Avvitare cerniera superiore prima (25 Nm), poi inferiore (25 Nm) — sequenza CAD obbligatoria, chiave dinamometrica Gedore', en: 'Tighten upper hinge first (25 Nm), then lower (25 Nm) — mandatory CAD sequence, Gedore torque wrench', pt: 'Apertar dobradiça superior primeiro (25 Nm), depois inferior (25 Nm) — sequência CAD obrigatória', time: '5 min' },
+      { step: 5, it: 'Verificare posizione cerniere con sensore di contatto — LED blu = posizione entro 0.05 mm, LED rosso = riallineare e ripetere', en: 'Verify hinge position with contact sensor — blue LED = within 0.05 mm, red LED = realign and repeat', pt: 'Verificar posição das dobradiças com sensor de contato — LED azul = dentro de 0.05 mm', time: '2 min' },
+      { step: 6, it: 'Eseguire 5 cicli completi apertura/chiusura (0°→90°→0°) — nessun cigolio, resistenza uniforme, verifica coppia di apertura 1.5–3.0 Nm', en: 'Perform 5 complete open/close cycles (0°→90°→0°) — no squeaking, uniform resistance, opening torque 1.5–3.0 Nm', pt: 'Realizar 5 ciclos completos de abertura/fechamento (0°→90°→0°) — sem rangidos', time: '3 min' },
     ],
   },
   'AUDI-ING': {
@@ -122,12 +111,12 @@ const plantProcedures = {
     component: 'Banco Rulli Simulazione Manto Stradale BR-450',
     cadOverlay: 'Impianto Simulazione Manto Stradale — Modello CAD v6.0',
     steps: [
-      { step: 1, it: 'Posizionare veicolo sui rulli e bloccare ruote anteriori', en: 'Position vehicle on rollers and lock front wheels', pt: 'Posicione o veículo nos rolos e trave as rodas dianteiras', time: '4 min' },
-      { step: 2, it: 'Configurare attuatori MTS per profilo strada (corsa ±100 mm)', en: 'Configure MTS actuators for road profile (stroke ±100 mm)', pt: 'Configure os atuadores MTS para perfil de estrada (curso ±100 mm)', time: '3 min' },
-      { step: 3, it: 'Attivare servovalvole MOOG (range 0-50 Hz)', en: 'Activate MOOG servovalves (range 0-50 Hz)', pt: 'Ative as servoválvulas MOOG (faixa 0-50 Hz)', time: '2 min' },
-      { step: 4, it: 'Avviare cicli simulazione manto e monitorare cella di carico (100 kN)', en: 'Start road simulation cycles and monitor load cell (100 kN)', pt: 'Inicie ciclos de simulação de pista e monitore célula de carga (100 kN)', time: '8 min' },
-      { step: 5, it: 'Acquisire dati accelerometro triassiale a 10 kHz', en: 'Acquire triaxial accelerometer data at 10 kHz', pt: 'Adquira dados de acelerômetro triaxial a 10 kHz', time: '4 min' },
-      { step: 6, it: 'Generare report NVH con software acquisizione', en: 'Generate NVH report with acquisition software', pt: 'Gere relatório NVH com software de aquisição', time: '5 min' },
+      { step: 1, it: 'Guidare veicolo sui rulli dinamometrici — bloccare ruote anteriori con fermi meccanici, verificare centratura ±20 mm sull\'asse banco', en: 'Drive vehicle onto dynamometric rollers — lock front wheels with mechanical stops, check centering ±20 mm on bench axis', pt: 'Posicionar veículo nos rolos dinamométricos — travar rodas dianteiras com batentes mecânicos', time: '4 min' },
+      { step: 2, it: 'Caricare profilo "ROAD-A2" su controller MTS — configurare corsa ±100 mm, frequenza sweep 0–50 Hz, rampa 30 s', en: 'Load profile "ROAD-A2" on MTS controller — set stroke ±100 mm, frequency sweep 0–50 Hz, 30 s ramp', pt: 'Carregar perfil "ROAD-A2" no controlador MTS — corsa ±100 mm, sweep 0–50 Hz, rampa 30 s', time: '3 min' },
+      { step: 3, it: 'Attivare servovalvole MOOG D633 — avviare sweep 0→50 Hz con rampa 30 s, verificare risposta idraulica su display controller', en: 'Activate MOOG D633 servovalves — start 0→50 Hz sweep with 30 s ramp, verify hydraulic response on controller display', pt: 'Ativar servoválvulas MOOG D633 — iniciar sweep 0→50 Hz com rampa 30 s', time: '2 min' },
+      { step: 4, it: 'Avviare cicli simulazione — monitorare cella di carico PCB in tempo reale (max 100 kN), sistema si arresta automaticamente se superato', en: 'Start simulation cycles — monitor PCB load cell in real time (max 100 kN), system auto-stops if exceeded', pt: 'Iniciar ciclos de simulação — monitorar célula de carga PCB em tempo real (máx 100 kN)', time: '8 min' },
+      { step: 5, it: 'Acquisire dati accelerometro triassiale PCB 356A a 10 kHz — verificare connessioni BNC, RMS su assi X/Y/Z entro limiti progetto', en: 'Acquire data from PCB 356A triaxial accelerometer at 10 kHz — check BNC connections, RMS on X/Y/Z within project limits', pt: 'Adquirir dados do acelerômetro triaxial PCB 356A a 10 kHz — verificar conexões BNC', time: '4 min' },
+      { step: 6, it: 'Generare report NVH con software nCode — esportare CSV grezzo + grafico FFT in PDF, archiviare in cartella progetto con data', en: 'Generate NVH report with nCode software — export raw CSV + FFT chart as PDF, archive in project folder with date', pt: 'Gerar relatório NVH com software nCode — exportar CSV bruto + gráfico FFT em PDF', time: '5 min' },
     ],
   },
 };
@@ -139,66 +128,112 @@ const plantProcedures = {
 // servono come highlights statici di base così l'operatore vede comunque il punto.
 const stepHighlights3D = {
   'BMW-SPART': [
-    [{ label: 'MOLLA 18.5kN', nx: 0.5, ny: 0.4, nz: 0.5, color: '#ef4444', hint: 'Centra la molla sull\'asse della pressa' }],
-    [{ label: 'AMMORTIZZATORE', nx: 0.5, ny: 0.6, nz: 0.5, color: '#a855f7', hint: 'Inserisci dall\'alto, allinea foro centrale' }],
-    [{ label: 'SUPPORTO SUP.', nx: 0.5, ny: 0.92, nz: 0.5, color: '#f59e0b', hint: 'Coppia 120 Nm con chiave dinamometrica' }],
-    [{ label: 'LASER BRACCIO', nx: 0.2, ny: 0.3, nz: 0.7, color: '#22c55e', hint: 'Verifica offset < 0.1 mm sul display' }],
-    [{ label: 'SENSORE CORSA', nx: 0.5, ny: 0.45, nz: 0.85, color: '#06b6d4', hint: 'Connettore M12, orientamento freccia' }],
-    [{ label: 'CIRCUITO OLIO', nx: 0.8, ny: 0.5, nz: 0.6, color: '#f97316', hint: 'Apri valvola, chiudi a 65°C max' }],
-    [{ label: 'PLC S7-1500', nx: 0.15, ny: 0.85, nz: 0.2, color: '#60a5fa', hint: 'Avvia ciclo TEST_OK su HMI Comfort' }],
+    // Passo 1: molla nella zona centrale-bassa della pressa (piano di lavoro)
+    [{ label: 'MOLLA 18.5kN', nx: 0.5, ny: 0.22, nz: 0.6, color: '#ef4444', hint: 'Asse verticale pressa — clic su sede molla' }],
+    // Passo 2: corpo centrale pressa, zona media
+    [{ label: 'AMMORTIZZATORE', nx: 0.5, ny: 0.48, nz: 0.65, color: '#a855f7', hint: 'Inserisci dall\'alto — allinea con sede foro Ø42' }],
+    // Passo 3: parte alta della pressa — dado supporto sommità
+    [{ label: 'SUPPORTO SUP.', nx: 0.5, ny: 0.88, nz: 0.6, color: '#f59e0b', hint: 'Chiave dinamometrica 120 Nm — senso orario' }],
+    // Passo 4: braccio laterale sinistro con emettitore laser
+    [{ label: 'LASER BRACCIO', nx: 0.18, ny: 0.35, nz: 0.75, color: '#22c55e', hint: 'Lettura display laterale — offset max 0.1 mm' }],
+    // Passo 5: lato frontale centrale, connettore sensore
+    [{ label: 'SENSORE CORSA', nx: 0.55, ny: 0.42, nz: 0.92, color: '#06b6d4', hint: 'Connettore M12×1 — freccia verso l\'alto' }],
+    // Passo 6: lato destro in alto — raccordo valvola olio
+    [{ label: 'CIRCUITO OLIO', nx: 0.85, ny: 0.62, nz: 0.55, color: '#f97316', hint: 'Valvola sfera 3/8" — chiudi quando T>65°C' }],
+    // Passo 7: pannello HMI/PLC — quadro frontale centrale in cima alla pressa
+    [{ label: 'PLC S7-1500', nx: 0.52, ny: 0.80, nz: 0.88, color: '#60a5fa', hint: 'Tasto START su HMI Comfort — attendi OK verde' }],
   ],
   'STELL-BETIM': [
-    [{ label: 'LAMIERATO', nx: 0.5, ny: 0.45, nz: 0.5, color: '#f59e0b', hint: 'Appoggia, verifica perni di centraggio' }],
-    [{ label: 'CLAMP PNEUM.', nx: 0.35, ny: 0.55, nz: 0.5, color: '#00d4aa', hint: '12 clamp in sequenza, 6 bar costanti' }],
-    [{ label: 'STAFFAGGI', nx: 0.25, ny: 0.4, nz: 0.6, color: '#a855f7', hint: 'Comparatore: bolla a centro 0.01 mm' }],
-    [{ label: 'ELETTRODI Cu-Cr', nx: 0.5, ny: 0.7, nz: 0.5, color: '#ef4444', hint: 'Verifica usura punte < 30%' }],
-    [{ label: 'SALDATURA', nx: 0.5, ny: 0.6, nz: 0.5, color: '#f97316', hint: '12.5 kA, 200 ms, non muovere maschera' }],
-    [{ label: 'CONTROLLO', nx: 0.7, ny: 0.55, nz: 0.5, color: '#22c55e', hint: 'Strappo 1500 N campione ogni 50 pz' }],
+    // Passo 1: piano centrale maschera dove si appoggia il lamierato
+    [{ label: 'LAMIERATO', nx: 0.5, ny: 0.42, nz: 0.55, color: '#f59e0b', hint: 'Appoggiar su 3 perni Ø12 — flush ±0.3 mm' }],
+    // Passo 2: clamp pneumatici distribuiti sul perimetro — zona sinistra-media
+    [{ label: 'CLAMP PNEUM.', nx: 0.25, ny: 0.52, nz: 0.5, color: '#00d4aa', hint: 'Sequenza SX→DX — 6 bar, udibile il clic' }],
+    // Passo 3: staffaggi comparatore — zona frontale bassa
+    [{ label: 'STAFFAGGI', nx: 0.3, ny: 0.32, nz: 0.82, color: '#a855f7', hint: 'Comparatore centesimale — bolla a zero ±0.01' }],
+    // Passo 4: elettrodi saldatura — zona centrale alta
+    [{ label: 'ELETTRODI Cu-Cr', nx: 0.5, ny: 0.72, nz: 0.55, color: '#ef4444', hint: 'Punta Cu-Cr — usura < 30% diametro originale' }],
+    // Passo 5: zona di saldatura punti — corpo maschera centrale
+    [{ label: 'SALDATURA', nx: 0.5, ny: 0.58, nz: 0.5, color: '#f97316', hint: '12.5 kA × 200 ms — fermo assoluto struttura' }],
+    // Passo 6: zona destra — campione per prova strappo
+    [{ label: 'CONTROLLO', nx: 0.78, ny: 0.52, nz: 0.45, color: '#22c55e', hint: 'Strappo 1500 N min — ogni 50 pezzi prodotti' }],
   ],
   'NKE-ALPI': [
-    [{ label: 'PIATTAFORMA', nx: 0.5, ny: 0.1, nz: 0.5, color: '#00d4aa', hint: 'Veicolo allineato 0.0° su ruote anteriori' }],
-    [{ label: 'TARGET 4.0m', nx: 0.5, ny: 0.7, nz: 0.95, color: '#ef4444', hint: 'Distanza 4000 mm ±5 mm dal paraurti' }],
-    [{ label: 'TELECAMERA', nx: 0.5, ny: 0.5, nz: 0.7, color: '#f59e0b', hint: 'ECU connessa OBD-II, avvia routine CAL' }],
-    [{ label: 'RADAR 77GHz', nx: 0.2, ny: 0.45, nz: 0.7, color: '#a855f7', hint: 'Tolleranza azimuth < 0.2°' }],
-    [{ label: 'TEST LED', nx: 0.5, ny: 0.7, nz: 0.95, color: '#22c55e', hint: 'Pattern dinamico 30s a 2400 lux' }],
+    // Passo 1: piattaforma di appoggio ruote — parte bassa banco
+    [{ label: 'PIATTAFORMA', nx: 0.5, ny: 0.08, nz: 0.5, color: '#00d4aa', hint: 'Ruote su piatti allineatori — 0.0° asse anteriore' }],
+    // Passo 2: target riflettente sul palo frontale alto
+    [{ label: 'TARGET 4.0m', nx: 0.5, ny: 0.75, nz: 0.95, color: '#ef4444', hint: 'Distanza 4000 mm ±5 mm dal paraurti anteriore' }],
+    // Passo 3: telecamera frontale veicolo — zona centrale
+    [{ label: 'TELECAMERA', nx: 0.5, ny: 0.52, nz: 0.72, color: '#f59e0b', hint: 'OBD-II connesso — routine "CAL_CAM_01" su ECU' }],
+    // Passo 4: radar LRR lato sinistro paraurti
+    [{ label: 'RADAR 77GHz', nx: 0.18, ny: 0.42, nz: 0.78, color: '#a855f7', hint: 'Azimuth < 0.2° — tolleranza elevazione ±0.1°' }],
+    // Passo 5: pannello LED target frontale
+    [{ label: 'TEST LED', nx: 0.5, ny: 0.72, nz: 0.95, color: '#22c55e', hint: 'Pattern dinamico 30 s — 2400 lux costanti' }],
   ],
   'FCA-KRAGU': [
-    [{ label: 'FIXTURE', nx: 0.5, ny: 0.5, nz: 0.5, color: '#a855f7', hint: 'Inserisci pezzo, clic sul perno di riferimento' }],
-    [{ label: 'HMI', nx: 0.85, ny: 0.7, nz: 0.3, color: '#60a5fa', hint: 'Programma "P12" coppia 18 Nm ±0.5%' }],
-    [{ label: 'AVVITATORE', nx: 0.55, ny: 0.85, nz: 0.5, color: '#00d4aa', hint: 'Desoutter CVI3 premi grilletto 2 sec' }],
-    [{ label: 'POKA-YOKE', nx: 0.5, ny: 0.55, nz: 0.5, color: '#f59e0b', hint: 'Spia verde = sequenza corretta' }],
-    [{ label: 'BARCODE', nx: 0.25, ny: 0.85, nz: 0.4, color: '#22c55e', hint: 'Scansiona DataMatrix, beep singolo OK' }],
+    // Passo 1: fixture di posizionamento al centro del banco
+    [{ label: 'FIXTURE', nx: 0.5, ny: 0.45, nz: 0.55, color: '#a855f7', hint: 'Clic sul perno Ø8 di riferimento — flush piano' }],
+    // Passo 2: pannello HMI laterale destro
+    [{ label: 'HMI', nx: 0.88, ny: 0.68, nz: 0.35, color: '#60a5fa', hint: 'Seleziona P12 — coppia target 18 Nm ±0.5%' }],
+    // Passo 3: avvitatore bilanciato sopra il banco
+    [{ label: 'AVVITATORE', nx: 0.52, ny: 0.82, nz: 0.52, color: '#00d4aa', hint: 'CVI3 — grilletto 2 s continui, no rilascio precoce' }],
+    // Passo 4: sensore Poka-Yoke integrato nella fixture
+    [{ label: 'POKA-YOKE', nx: 0.5, ny: 0.52, nz: 0.5, color: '#f59e0b', hint: 'Spia verde = sequenza OK — rossa = stop forzato' }],
+    // Passo 5: lettore barcode fisso sulla traversa alta
+    [{ label: 'BARCODE', nx: 0.22, ny: 0.82, nz: 0.42, color: '#22c55e', hint: 'DataMatrix — singolo beep = tracciabilità OK' }],
   ],
   'IVECO-TO': [
-    [{ label: 'PIANO TERMOSTAT.', nx: 0.5, ny: 0.15, nz: 0.5, color: '#00d4aa', hint: 'Attendi stabilizzazione 20°C ±0.5' }],
-    [{ label: 'CALIBRO CL.0', nx: 0.3, ny: 0.55, nz: 0.5, color: '#a855f7', hint: 'Selezione da cassettiera, registro lotto' }],
-    [{ label: 'CORSOIO MOBILE', nx: 0.5, ny: 0.55, nz: 0.5, color: '#f59e0b', hint: 'Movimento dolce, no forzature laterali' }],
-    [{ label: 'NONIO DIGITALE', nx: 0.7, ny: 0.6, nz: 0.5, color: '#06b6d4', hint: 'Leggi ris. 0.01 mm, premi HOLD' }],
-    [{ label: 'CONFORMITÀ', nx: 0.5, ny: 0.55, nz: 0.5, color: '#22c55e', hint: 'IT6 = entro tolleranza disegno' }],
+    // Passo 1: piano termostatato — superficie base del banco
+    [{ label: 'PIANO TERMOSTAT.', nx: 0.5, ny: 0.12, nz: 0.5, color: '#00d4aa', hint: 'Attendi 20°C ±0.5 — spia verde stabilizzazione' }],
+    // Passo 2: cassettiera calibri — zona sinistra banca
+    [{ label: 'CALIBRO CL.0', nx: 0.22, ny: 0.52, nz: 0.48, color: '#a855f7', hint: 'Classe 0 — registra n° lotto su foglio controllo' }],
+    // Passo 3: corsoio mobile sul calibro — parte mobile centrale
+    [{ label: 'CORSOIO MOBILE', nx: 0.5, ny: 0.52, nz: 0.5, color: '#f59e0b', hint: 'Avanzamento dolce — no spinte laterali > 0.5 N' }],
+    // Passo 4: display nonio digitale — zona destra calibro
+    [{ label: 'NONIO DIGITALE', nx: 0.72, ny: 0.58, nz: 0.5, color: '#06b6d4', hint: 'Risoluzione 0.002 mm — premi HOLD dopo lettura' }],
+    // Passo 5: zona lettura risultato — display certificato
+    [{ label: 'CONFORMITÀ', nx: 0.5, ny: 0.52, nz: 0.5, color: '#22c55e', hint: 'IT6: tolleranza ±0.011 mm per Ø18 — vedi disegno' }],
   ],
   'STELL-MIRA': [
-    [{ label: 'TELAIO ALIM.', nx: 0.5, ny: 0.2, nz: 0.5, color: '#a855f7', hint: 'Scivolo rulli, modanatura su guide' }],
-    [{ label: 'LASER POSIZ.', nx: 0.4, ny: 0.6, nz: 0.7, color: '#ef4444', hint: 'Croce rossa centrata sul foro target' }],
-    [{ label: 'VENTOSE', nx: 0.5, ny: 0.55, nz: 0.5, color: '#00d4aa', hint: 'Manometro -0.9 bar prima di sollevare' }],
-    [{ label: 'ATTUATORE LIN.', nx: 0.65, ny: 0.65, nz: 0.5, color: '#f97316', hint: 'Corsa programmata 250 mm su HMI' }],
-    [{ label: 'COMPRESSIONE', nx: 0.5, ny: 0.55, nz: 0.5, color: '#f59e0b', hint: '350 N per 8 sec, non rilasciare prima' }],
-    [{ label: 'PLC CONTROLLO', nx: 0.15, ny: 0.85, nz: 0.3, color: '#22c55e', hint: 'LED verde "ADHESION OK"' }],
+    // Passo 1: telaio di alimentazione — zona bassa anteriore
+    [{ label: 'TELAIO ALIM.', nx: 0.5, ny: 0.18, nz: 0.52, color: '#a855f7', hint: 'Guide rulli — modanatura parallela al bordo ±1 mm' }],
+    // Passo 2: emettitore laser posizionamento — zona centrale-alta
+    [{ label: 'LASER POSIZ.', nx: 0.38, ny: 0.62, nz: 0.72, color: '#ef4444', hint: 'Croce rossa — centra su foro target Ø6 veicolo' }],
+    // Passo 3: ventose di presa — array centrale struttura
+    [{ label: 'VENTOSE', nx: 0.5, ny: 0.52, nz: 0.5, color: '#00d4aa', hint: 'Manometro -0.9 bar — spia rossa prima del sollevamento' }],
+    // Passo 4: attuatore lineare — colonna laterale destra
+    [{ label: 'ATTUATORE LIN.', nx: 0.68, ny: 0.62, nz: 0.5, color: '#f97316', hint: 'Corsa 250 mm — velocità 80 mm/s programmata HMI' }],
+    // Passo 5: zona di compressione sulla carrozzeria
+    [{ label: 'COMPRESSIONE', nx: 0.5, ny: 0.52, nz: 0.5, color: '#f59e0b', hint: '350 N × 8 s — non rilasciare prima del beep OK' }],
+    // Passo 6: quadro PLC controllo — pannello frontale alta
+    [{ label: 'PLC CONTROLLO', nx: 0.52, ny: 0.82, nz: 0.82, color: '#22c55e', hint: 'LED verde "ADHESION OK" — ciclo 8 ms confermato' }],
   ],
   'FCA-MELFI': [
-    [{ label: 'GUIDA LINEARE', nx: 0.5, ny: 0.2, nz: 0.5, color: '#a855f7', hint: 'Slitta scorre senza giochi (< 0.01 mm)' }],
-    [{ label: 'SUPPORTO ERGON.', nx: 0.2, ny: 0.55, nz: 0.5, color: '#06b6d4', hint: 'Manopola verde altezza spalla operatore' }],
-    [{ label: 'BLOCC. RAPIDO', nx: 0.5, ny: 0.55, nz: 0.5, color: '#ef4444', hint: 'Leva in basso = 500 N applicati' }],
-    [{ label: 'CERNIERE', nx: 0.7, ny: 0.7, nz: 0.5, color: '#f59e0b', hint: 'Sup→Inf, coppia 25 Nm secondo CAD' }],
-    [{ label: 'SENSORE CONTATTO', nx: 0.7, ny: 0.5, nz: 0.6, color: '#00d4aa', hint: 'LED blu = posizione cerniera entro 0.05 mm' }],
-    [{ label: 'TEST APERTURA', nx: 0.5, ny: 0.6, nz: 0.5, color: '#22c55e', hint: '5 cicli completi, nessun cigolio' }],
+    // Passo 1: guida lineare orizzontale — base del banco
+    [{ label: 'GUIDA LINEARE', nx: 0.5, ny: 0.18, nz: 0.52, color: '#a855f7', hint: 'Slitta: gioco max 0.01 mm — verifica con comparatore' }],
+    // Passo 2: supporto ergonomico — colonna laterale sinistra
+    [{ label: 'SUPPORTO ERGON.', nx: 0.18, ny: 0.52, nz: 0.5, color: '#06b6d4', hint: 'Manopola verde — altezza gomito operatore ±50 mm' }],
+    // Passo 3: meccanismo bloccaggio rapido — zona centrale
+    [{ label: 'BLOCC. RAPIDO', nx: 0.5, ny: 0.52, nz: 0.55, color: '#ef4444', hint: 'Leva in basso = 500 N — udibile il clic di fine corsa' }],
+    // Passo 4: cerniere porta — zona destra alta
+    [{ label: 'CERNIERE', nx: 0.72, ny: 0.72, nz: 0.5, color: '#f59e0b', hint: 'Sup prima, poi Inf — 25 Nm chiave dinamometrica' }],
+    // Passo 5: sensore contatto posizione cerniera
+    [{ label: 'SENSORE CONTATTO', nx: 0.72, ny: 0.48, nz: 0.62, color: '#00d4aa', hint: 'LED blu = entro 0.05 mm — rosso = riallineare' }],
+    // Passo 6: zona porta completata — test funzionale
+    [{ label: 'TEST APERTURA', nx: 0.5, ny: 0.58, nz: 0.5, color: '#22c55e', hint: '5 cicli 0°→90°→0° — nessun cigolio né resistenza' }],
   ],
   'AUDI-ING': [
-    [{ label: 'RULLI', nx: 0.5, ny: 0.15, nz: 0.5, color: '#a855f7', hint: 'Veicolo centrato, bloccaggio anteriore attivo' }],
-    [{ label: 'ATTUATORI MTS', nx: 0.25, ny: 0.5, nz: 0.5, color: '#ef4444', hint: 'Profilo "ROAD-A2", corsa ±100 mm' }],
-    [{ label: 'SERVOVALVOLE', nx: 0.75, ny: 0.5, nz: 0.5, color: '#00d4aa', hint: 'MOOG attive, sweep 0→50 Hz' }],
-    [{ label: 'CELLA CARICO', nx: 0.5, ny: 0.45, nz: 0.5, color: '#f59e0b', hint: 'Lettura live max 100 kN, non superare' }],
-    [{ label: 'ACCELEROMETRO', nx: 0.15, ny: 0.85, nz: 0.3, color: '#06b6d4', hint: 'Triassiale 10 kHz, RMS X/Y/Z' }],
-    [{ label: 'REPORT NVH', nx: 0.85, ny: 0.85, nz: 0.3, color: '#22c55e', hint: 'Esporta CSV + grafico FFT' }],
+    // Passo 1: rulli banco — zona bassa centrale
+    [{ label: 'RULLI', nx: 0.5, ny: 0.12, nz: 0.5, color: '#a855f7', hint: 'Veicolo centrato — bloccaggio anteriore attivato' }],
+    // Passo 2: attuatori MTS — lato sinistro struttura
+    [{ label: 'ATTUATORI MTS', nx: 0.22, ny: 0.48, nz: 0.52, color: '#ef4444', hint: 'Profilo "ROAD-A2" — corsa ±100 mm, 0→50 Hz' }],
+    // Passo 3: servovalvole MOOG — lato destro struttura
+    [{ label: 'SERVOVALVOLE', nx: 0.78, ny: 0.48, nz: 0.52, color: '#00d4aa', hint: 'MOOG D633 — sweep 0→50 Hz, rampa 30 s' }],
+    // Passo 4: cella di carico — zona centrale bassa
+    [{ label: 'CELLA CARICO', nx: 0.5, ny: 0.42, nz: 0.52, color: '#f59e0b', hint: 'Lettura live — STOP automatico se > 100 kN' }],
+    // Passo 5: accelerometro triassiale — montato su piano banco
+    [{ label: 'ACCELEROMETRO', nx: 0.18, ny: 0.78, nz: 0.35, color: '#06b6d4', hint: 'Triassiale PCB 356A — 10 kHz, verifica cavi BNC' }],
+    // Passo 6: postazione acquisizione dati — PC laterale
+    [{ label: 'REPORT NVH', nx: 0.82, ny: 0.78, nz: 0.35, color: '#22c55e', hint: 'Software nCode — Esporta CSV + FFT in PDF' }],
   ],
 };
 
@@ -399,21 +434,24 @@ export default function VisualTraining() {
   const [targetLang, setTargetLang] = useState('en');
 
   const [calling, setCalling] = useState(false);
-  const [imgIndex, setImgIndex] = useState(0);
 
-  const [aiStepResult, setAiStepResult] = useState(null);
-  const [aiStepRunning, setAiStepRunning] = useState(false);
+
+  // aiResults: mappa stepIndex → risultato AI per l'impianto corrente
+  const [aiResults, setAiResults] = useState({});
+  const [aiRunningCount, setAiRunningCount] = useState(0); // quanti step ancora in elaborazione
   const [aiStepError, setAiStepError] = useState(null);
-  const [autoAI, setAutoAI] = useState(true);  // ricalcolo automatico ad ogni step
   const [autoRotate, setAutoRotate] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
 
-  const { detectTrainingStep, hasApiKey, error: googleAIError } = useGoogleAI();
+  const { callGemini, parseJsonResponse, hasApiKey } = useGoogleAI();
 
   const proc = plantProcedures[selectedPlant.id];
   const step = proc.steps[currentStep];
   const totalSteps = proc.steps.length;
-  const currentImages = plantImages[selectedPlant.id] || [];
-  const currentImage = currentImages[imgIndex % currentImages.length] || currentImages[0];
 
   const getTranslatedText = (s) => {
     if (!translated) return null;
@@ -434,54 +472,68 @@ export default function VisualTraining() {
     setTimeout(() => setCalling(false), 3000);
   };
 
-  // Rileva passo attuale tramite Gemini Vision in tempo reale.
-  // expectedStepArg permette di passare il passo target esplicitamente,
-  // utile per l'auto-trigger che parte prima dello state aggiornamento.
-  const runDetectStep = async (expectedStepArg) => {
-    setAiStepRunning(true);
+  // Genera guida AI per UN singolo passo (chiamata interna).
+  const analyseStep = async (stepIndex, currentProc, plantId) => {
+    const s = currentProc.steps[stepIndex];
+    const stepNum = stepIndex + 1;
+    const allSteps = currentProc.steps.map((x, i) => `${i + 1}. ${x.it}`).join('\n');
+    const staticHighlights = stepHighlights3D[plantId]?.[stepIndex] || [];
+
+    const prompt = `Sei un assistente tecnico per operatori industriali di Automazioni & Service Srl (Piobesi Torino).
+
+MACCHINARIO: ${currentProc.component}
+PASSO ${stepNum}/${currentProc.steps.length}: ${s.it}
+TUTTI I PASSI:
+${allSteps}
+PUNTI DI INTERVENTO:
+${staticHighlights.map(h => `- ${h.label}: ${h.hint}`).join('\n')}
+
+Rispondi SOLO JSON valido:
+{
+  "stepGuidance": "istruzione operativa 1-2 frasi, cita valori tecnici (kN, Nm, bar, ecc.) del passo",
+  "nextAction": "prima azione concreta adesso (max 70 char)",
+  "warnings": ["avvertimento solo se c'è rischio reale, altrimenti array vuoto"]
+}`;
+
+    const result = await callGemini([{ text: prompt }], {
+      responseMimeType: 'application/json',
+      temperature: 0.1,
+      maxOutputTokens: 300,
+    });
+
+    const parsed = result ? parseJsonResponse(result.text) : null;
+    const highlights = staticHighlights.map(h => ({
+      nx: h.nx, ny: h.ny, nz: h.nz,
+      label: h.label, hint: h.hint, color: h.color,
+    }));
+    return parsed ? { ...parsed, highlights } : { highlights };
+  };
+
+  // Avvia analisi AI su TUTTI i passi dell'impianto corrente in parallelo.
+  // I risultati arrivano step by step e vengono mostrati man mano.
+  const runAllSteps = async () => {
+    if (!hasApiKey) { setAiStepError('VITE_GOOGLE_AI_API_KEY mancante in .env.local'); return; }
     setAiStepError(null);
+    setAiResults({});
+    const total = proc.steps.length;
+    setAiRunningCount(total);
 
-    if (!hasApiKey) {
-      setAiStepError('VITE_GOOGLE_AI_API_KEY mancante in .env.local');
-      setAiStepRunning(false);
-      return;
-    }
+    // Cattura snapshot di impianto e proc per evitare stale closure se l'utente cambia impianto
+    const snapPlantId = selectedPlant.id;
+    const snapProc = proc;
 
-    try {
-      const referenceImage = currentImage || plantImages[selectedPlant.id]?.[0];
-      if (!referenceImage) {
-        setAiStepError('Immagine di riferimento non disponibile');
-        setAiStepRunning(false);
-        return;
-      }
-
-      const targetStep = expectedStepArg ?? (currentStep + 1);
-
-      const result = await detectTrainingStep(referenceImage, {
-        component: proc.component,
-        steps: proc.steps,
-        expectedStep: targetStep,
-      });
-
-      if (!result) {
-        setAiStepError(googleAIError || 'Errore di rete o API non disponibile');
-        setAiStepRunning(false);
-        return;
-      }
-      if (result.parseError) {
-        setAiStepError('Risposta AI non interpretabile');
-        setAiStepRunning(false);
-        return;
-      }
-
-      setAiStepResult(result);
-      // L'AI conferma lo step ma NON sovrascriviamo l'UI se l'utente è
-      // navigato manualmente — l'AI risponde sempre per il passo target.
-    } catch (err) {
-      setAiStepError(err.message || 'Errore durante rilevamento AI');
-    } finally {
-      setAiStepRunning(false);
-    }
+    proc.steps.forEach((_, idx) => {
+      analyseStep(idx, snapProc, snapPlantId)
+        .then(result => {
+          setAiResults(prev => ({ ...prev, [idx]: result }));
+        })
+        .catch(() => {
+          setAiResults(prev => ({ ...prev, [idx]: null }));
+        })
+        .finally(() => {
+          setAiRunningCount(prev => Math.max(0, prev - 1));
+        });
+    });
   };
 
   // Reset stato quando cambia impianto
@@ -489,26 +541,48 @@ export default function VisualTraining() {
     setCurrentStep(0);
     setTranslated(false);
     setShowVideo(false);
-    setAiStepResult(null);
+    setAiResults({});
+    setAiRunningCount(0);
     setAiStepError(null);
   }, [selectedPlant]);
 
-  // Auto-trigger AI ad ogni cambio step (debounced 350ms per evitare spam
-  // se l'utente clicca rapidamente "Successivo" più volte di fila).
-  useEffect(() => {
-    if (!autoAI || !hasApiKey || showVideo) return;
-    const targetStep = currentStep + 1;
-    const timer = setTimeout(() => {
-      runDetectStep(targetStep);
-    }, 350);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, selectedPlant.id, autoAI, hasApiKey, showVideo]);
+  // Chat AI assistente — risponde a domande procedurali dell'operatore
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+    const userMsg = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setChatLoading(true);
+    try {
+      const stepDesc = proc.steps.map((s, i) => `${i + 1}. ${s.it}`).join('\n');
+      const context = `Sei un assistente tecnico per operatori industriali di Automazioni & Service Srl (Piobesi Torino).
+Procedura attiva: ${proc.component}
+Passo corrente: ${currentStep + 1}. ${step.it}
+Lista completa passi:\n${stepDesc}
+${aiStepResult?.stepGuidance ? `Guida AI attiva: ${aiStepResult.stepGuidance}` : ''}
 
-  // Highlight 3D correnti: AI > fallback statico
-  const fallback3D = (stepHighlights3D[selectedPlant.id]?.[currentStep]) || [];
+Rispondi in modo conciso e pratico. Dai indicazioni operative precise. Usa al massimo 3-4 frasi.`;
+      const result = await callGemini([{ text: `${context}\n\nDomanda operatore: ${userMsg}` }], {
+        responseMimeType: 'text/plain',
+        maxOutputTokens: 300,
+        temperature: 0.3,
+      });
+      const answer = result?.text?.trim() || 'Non ho potuto elaborare la risposta.';
+      setChatMessages(prev => [...prev, { role: 'ai', text: answer }]);
+    } catch {
+      setChatMessages(prev => [...prev, { role: 'ai', text: 'Errore di connessione. Riprova.' }]);
+    } finally {
+      setChatLoading(false);
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+  };
+
+  const aiStepResult = aiResults[currentStep] ?? null;
+  const aiStepRunning = aiRunningCount > 0;
+
+  // Highlight 3D: solo da AI, appaiono solo dopo click "Analisi AI"
   const aiHighlights3D = aiStepResult?.highlights?.filter(h => typeof h.nx === 'number') || [];
-  const active3DHighlights = (aiHighlights3D.length > 0 ? aiHighlights3D : fallback3D).map((h, i) => ({
+  const active3DHighlights = aiHighlights3D.map((h, i) => ({
     id: `${selectedPlant.id}-${currentStep}-${i}`,
     nx: h.nx ?? 0.5,
     ny: h.ny ?? 0.5,
@@ -519,26 +593,26 @@ export default function VisualTraining() {
   }));
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <AlertBar message="Sessione training attiva — 3 operatori connessi da Detroit, 1 da São Paulo · AI Vision in esecuzione" />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <Eye size={22} className="text-[#00d4aa]" />
+          <Eye size={20} className="text-[#00d4aa]" />
           <div>
-            <h2 className="text-xl font-bold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>AI VISUAL TRAINING & ONBOARDING</h2>
+            <h2 className="text-lg font-bold tracking-wide" style={{ color: 'var(--color-text-primary)' }}>AI VISUAL TRAINING & ONBOARDING</h2>
             <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Vista Operatore · Realtà Aumentata · AI Co-Pilot con traduzione LLM in tempo reale</p>
           </div>
         </div>
       </div>
 
       {/* Selettore Impianto */}
-      <div className="mb-5">
+      <div className="mb-3">
         <label className="text-xs font-bold block mb-1" style={{ color: 'var(--color-text-secondary)' }}>SELEZIONA IMPIANTO</label>
         <select
           value={selectedPlant.id}
-          onChange={e => { setSelectedPlant(plants.find(p => p.id === e.target.value)); setImgIndex(0); setCurrentStep(0); setShowVideo(false); setTranslated(false); }}
+          onChange={e => { setSelectedPlant(plants.find(p => p.id === e.target.value)); setCurrentStep(0); setShowVideo(false); setTranslated(false); setAiStepError(null); setChatMessages([]); }}
           className="w-full p-3 rounded-xl text-sm font-semibold"
           style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', outline: 'none' }}>
           {plants.map(p => (
@@ -547,7 +621,7 @@ export default function VisualTraining() {
         </select>
       </div>
 
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-4">
         {/* CENTER: Viewport Centrale in Realtà Aumentata (AR) */}
         <div className="col-span-7">
           <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
@@ -566,7 +640,7 @@ export default function VisualTraining() {
             </div>
 
             {/* Viewport principale */}
-            <div className="relative" style={{ minHeight: '480px', background: '#040d1a' }}>
+            <div className="relative" style={{ minHeight: '420px', background: '#040d1a' }}>
               {showVideo ? (
                 <div className="w-full" style={{ aspectRatio: '16/9' }}>
                   <iframe
@@ -584,7 +658,6 @@ export default function VisualTraining() {
                     machineId={selectedPlant.machineId}
                     highlights={active3DHighlights}
                     autoRotate={autoRotate}
-                    onToggleRotate={() => setAutoRotate(!autoRotate)}
                     style={{ width: '100%', height: '100%' }}
                   />
 
@@ -602,39 +675,28 @@ export default function VisualTraining() {
                   </div>
 
                   {/* Controlli AI + 3D */}
-                  <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap max-w-[60%]">
-                    <button onClick={() => runDetectStep()} disabled={aiStepRunning || !hasApiKey}
+                  <div className="absolute bottom-3 left-3 flex items-center gap-2 flex-wrap max-w-[70%]">
+                    <button onClick={() => runAllSteps()} disabled={aiStepRunning || !hasApiKey}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
                       style={{
-                        background: aiStepRunning ? 'rgba(168,85,247,0.2)' : aiStepResult ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg, #4285f4, #1a73e8)',
+                        background: aiStepRunning ? 'rgba(168,85,247,0.2)' : Object.keys(aiResults).length > 0 ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg, #4285f4, #1a73e8)',
                         border: `1px solid ${aiStepRunning ? 'rgba(168,85,247,0.4)' : 'rgba(66,133,244,0.4)'}`,
-                        color: aiStepRunning ? '#a855f7' : aiStepResult ? '#22c55e' : '#fff',
+                        color: aiStepRunning ? '#a855f7' : Object.keys(aiResults).length > 0 ? '#22c55e' : '#fff',
                         opacity: hasApiKey ? 1 : 0.5,
                       }}
-                      title={hasApiKey ? 'Forza analisi Gemini sul passo corrente' : 'API Key mancante'}>
-                      {aiStepRunning ? <><Loader2 size={11} className="animate-spin" /> Gemini analizza...</> : <><Sparkles size={11} /> {aiStepResult ? 'Riesegui AI' : 'Rileva con AI'}</>}
+                      title={hasApiKey ? `Analisi AI su tutti i ${totalSteps} passi` : 'API Key mancante'}>
+                      {aiStepRunning
+                        ? <><Loader2 size={11} className="animate-spin" /> Analisi {totalSteps - aiRunningCount}/{totalSteps}…</>
+                        : <><Sparkles size={11} /> {Object.keys(aiResults).length > 0 ? 'Riesegui Analisi AI' : 'Analisi AI'}</>}
                     </button>
-                    <button onClick={() => setAutoAI(!autoAI)}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all"
+                    <button onClick={() => setAutoRotate(r => !r)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
                       style={{
-                        background: autoAI ? 'rgba(34,197,94,0.15)' : 'rgba(148,163,184,0.1)',
-                        border: `1px solid ${autoAI ? 'rgba(34,197,94,0.4)' : 'rgba(148,163,184,0.3)'}`,
-                        color: autoAI ? '#22c55e' : '#94a3b8',
-                      }}
-                      title="Quando ON, l'AI ricalcola automaticamente i punti su ogni passo">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: autoAI ? '#22c55e' : '#94a3b8' }} />
-                      AUTO-AI {autoAI ? 'ON' : 'OFF'}
-                    </button>
-                    <button onClick={() => setAutoRotate(!autoRotate)}
-                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[0.6rem] font-bold transition-all"
-                      style={{
-                        background: autoRotate ? 'rgba(96,165,250,0.15)' : 'rgba(148,163,184,0.1)',
-                        border: `1px solid ${autoRotate ? 'rgba(96,165,250,0.4)' : 'rgba(148,163,184,0.3)'}`,
-                        color: autoRotate ? '#60a5fa' : '#94a3b8',
-                      }}
-                      title="Rotazione automatica del modello 3D">
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: autoRotate ? '#60a5fa' : '#94a3b8' }} />
-                      ROT {autoRotate ? 'ON' : 'OFF'}
+                        background: autoRotate ? 'rgba(96,165,250,0.15)' : 'rgba(239,68,68,0.15)',
+                        border: `1px solid ${autoRotate ? 'rgba(96,165,250,0.4)' : 'rgba(239,68,68,0.4)'}`,
+                        color: autoRotate ? '#60a5fa' : '#ef4444',
+                      }}>
+                      {autoRotate ? <><Unlock size={11} /> Blocca Rotazione</> : <><Lock size={11} /> Sblocca Rotazione</>}
                     </button>
                     {aiStepError && (
                       <span className="text-[0.55rem] font-mono px-2 py-1 rounded" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444' }}>
@@ -660,13 +722,45 @@ export default function VisualTraining() {
               )}
             </div>
 
-            {/* AI Step Guidance dynamic from Gemini */}
-            {aiStepResult?.stepGuidance && (
-              <div className="px-4 py-2 flex items-center gap-2" style={{ background: 'rgba(66,133,244,0.05)', borderTop: '1px solid rgba(66,133,244,0.2)' }}>
-                <Sparkles size={12} className="text-blue-400 flex-shrink-0" />
-                <span className="text-[0.7rem] flex-1" style={{ color: 'var(--color-text-secondary)' }}>
-                  <strong style={{ color: '#4285f4' }}>Gemini AI:</strong> {aiStepResult.stepGuidance}
-                </span>
+            {/* AI Guidance Panel — appare dopo Analisi AI */}
+            {aiStepResult && (
+              <div style={{ background: 'rgba(66,133,244,0.07)', borderTop: '1px solid rgba(66,133,244,0.25)' }}>
+                {/* Riga guida principale */}
+                {aiStepResult.stepGuidance && (
+                  <div className="px-4 py-2.5 flex items-start gap-2">
+                    <Sparkles size={13} className="text-blue-400 flex-shrink-0 mt-0.5" />
+                    <span className="text-xs font-semibold leading-snug" style={{ color: '#93c5fd' }}>
+                      {aiStepResult.stepGuidance}
+                    </span>
+                  </div>
+                )}
+                {/* Prossima azione + avvertimenti */}
+                <div className="px-4 pb-2 flex flex-wrap gap-2">
+                  {aiStepResult.nextAction && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.65rem] font-bold"
+                      style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', color: '#4ade80' }}>
+                      ▶ {aiStepResult.nextAction}
+                    </span>
+                  )}
+                  {aiStepResult.warnings?.map((w, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.65rem] font-bold"
+                      style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)', color: '#fbbf24' }}>
+                      ⚠ {w}
+                    </span>
+                  ))}
+                </div>
+                {/* Highlights inline — mostra label e hint di ciascun punto 3D */}
+                {active3DHighlights.length > 0 && (
+                  <div className="px-4 pb-2.5 flex flex-wrap gap-1.5">
+                    {active3DHighlights.map((h, i) => (
+                      <div key={i} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.65rem]"
+                        style={{ background: `${h.color}14`, border: `1px solid ${h.color}45`, color: h.color }}>
+                        <span className="font-bold font-mono">{h.label}</span>
+                        {h.hint && <span className="opacity-80 text-white">{h.hint}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -716,21 +810,17 @@ export default function VisualTraining() {
         </div>
 
         {/* RIGHT: AI Co-Pilot — Checklist Operativa */}
-        <div className="col-span-5 space-y-4">
-          <div className="rounded-xl p-4" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
-            <div className="flex items-center justify-between mb-3">
+        <div className="col-span-5 space-y-3">
+          <div className="rounded-xl p-3" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
+            <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>AI CO-PILOT · CHECKLIST OPERATIVA</h3>
               <span className="text-[0.6rem] px-2 py-0.5 rounded-full font-bold" style={{
                 background: 'rgba(0,212,170,0.2)', color: '#00d4aa', border: '1px solid rgba(0,212,170,0.3)',
               }}>LLM Attivo</span>
             </div>
 
-            <p className="text-[0.6rem] mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-              Istruzioni generate dall'Intelligenza Artificiale a partire dai manuali tecnici italiani. Premi "Richiedi Traduzione AI" per tradurre nella lingua dell'operatore locale.
-            </p>
-
             {/* Passo attivo */}
-            <div className="p-4 rounded-lg mb-3" style={{ background: 'rgba(0,212,170,0.06)', border: '1px solid rgba(0,212,170,0.2)' }}>
+            <div className="p-3 rounded-lg mb-2" style={{ background: 'rgba(0,212,170,0.06)', border: '1px solid rgba(0,212,170,0.2)' }}>
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
                   style={{ background: 'linear-gradient(135deg, #00d4aa, #00a88a)', color: '#0a0e17' }}>
@@ -759,9 +849,9 @@ export default function VisualTraining() {
             </div>
 
             {/* Lista passi */}
-            <div className="space-y-1 max-h-48 overflow-y-auto pr-1 mb-4">
+            <div className="space-y-1 max-h-36 overflow-y-auto pr-1 mb-3">
               {proc.steps.map((s, i) => (
-                <button key={i} onClick={() => setCurrentStep(i)}
+                <button key={i} onClick={() => { setCurrentStep(i); setAiStepError(null); }}
                   className="w-full flex items-center gap-2 p-2 rounded-lg text-left text-xs transition-all"
                   style={{
                     background: i === currentStep ? 'rgba(0,212,170,0.08)' : 'transparent',
@@ -783,7 +873,7 @@ export default function VisualTraining() {
 
             {/* Navigazione */}
             <div className="flex items-center gap-3">
-              <button onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+              <button onClick={() => { setCurrentStep(Math.max(0, currentStep - 1)); setAiStepError(null); }}
                 disabled={currentStep === 0}
                 className="flex-1 flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30"
                 style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>
@@ -792,7 +882,7 @@ export default function VisualTraining() {
               <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--color-text-secondary)' }}>
                 Passo {currentStep + 1} di {totalSteps}
               </span>
-              <button onClick={() => setCurrentStep(Math.min(totalSteps - 1, currentStep + 1))}
+              <button onClick={() => { setCurrentStep(Math.min(totalSteps - 1, currentStep + 1)); setAiStepError(null); }}
                 disabled={currentStep === totalSteps - 1}
                 className="flex-1 flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-30"
                 style={{ background: 'linear-gradient(135deg, #00d4aa, #00a88a)', color: '#0a0e17' }}>
@@ -801,12 +891,73 @@ export default function VisualTraining() {
             </div>
           </div>
 
+          {/* Chat AI assistente */}
+          <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
+            <button onClick={() => setChatOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold transition-all hover:opacity-80"
+              style={{ background: chatOpen ? 'rgba(168,85,247,0.1)' : 'transparent', color: '#a855f7' }}>
+              <span className="flex items-center gap-2">
+                <MessageCircle size={14} />
+                CHIEDI ALL'AI · Assistente Operativo
+              </span>
+              <span className="text-[0.6rem] px-2 py-0.5 rounded-full" style={{ background: 'rgba(168,85,247,0.2)', border: '1px solid rgba(168,85,247,0.3)' }}>
+                {chatOpen ? 'Chiudi' : 'Apri Chat'}
+              </span>
+            </button>
+            {chatOpen && (
+              <div className="flex flex-col" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: '200px', minHeight: '80px' }}>
+                  {chatMessages.length === 0 && (
+                    <p className="text-[0.65rem] text-center py-2" style={{ color: 'var(--color-text-secondary)' }}>
+                      Hai dubbi su questo passo? Scrivi qui la tua domanda.
+                    </p>
+                  )}
+                  {chatMessages.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className="px-3 py-2 rounded-xl text-[0.7rem] max-w-[85%]"
+                        style={{
+                          background: m.role === 'user' ? 'rgba(96,165,250,0.15)' : 'rgba(168,85,247,0.1)',
+                          border: `1px solid ${m.role === 'user' ? 'rgba(96,165,250,0.3)' : 'rgba(168,85,247,0.3)'}`,
+                          color: m.role === 'user' ? '#93c5fd' : '#c084fc',
+                        }}>
+                        {m.text}
+                      </div>
+                    </div>
+                  ))}
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="px-3 py-2 rounded-xl text-[0.7rem]" style={{ background: 'rgba(168,85,247,0.1)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }}>
+                        <Loader2 size={12} className="animate-spin inline mr-1" /> AI sta elaborando...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+                <div className="flex gap-2 p-3" style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <input
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && sendChatMessage()}
+                    placeholder="Es: Come allineo il laser? Quale coppia usare?"
+                    className="flex-1 px-3 py-2 rounded-lg text-xs outline-none"
+                    style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+                  />
+                  <button onClick={sendChatMessage} disabled={chatLoading || !chatInput.trim()}
+                    className="px-3 py-2 rounded-lg transition-all disabled:opacity-40"
+                    style={{ background: 'rgba(168,85,247,0.2)', border: '1px solid rgba(168,85,247,0.4)', color: '#a855f7' }}>
+                    <Send size={13} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Info componente */}
-          <div className="rounded-xl p-4" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
-            <h4 className="text-xs font-bold mb-2" style={{ color: 'var(--color-text-secondary)' }}>COMPONENTE IN LAVORAZIONE</h4>
-            <p className="text-sm font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>{proc.component}</p>
-            <p className="text-[0.65rem]" style={{ color: 'var(--color-text-secondary)' }}>{proc.cadOverlay}</p>
-            <div className="flex items-center gap-4 mt-3">
+          <div className="rounded-xl p-3" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
+            <h4 className="text-xs font-bold mb-1" style={{ color: 'var(--color-text-secondary)' }}>COMPONENTE IN LAVORAZIONE</h4>
+            <p className="text-sm font-bold mb-0.5" style={{ color: 'var(--color-text-primary)' }}>{proc.component}</p>
+            <p className="text-[0.6rem]" style={{ color: 'var(--color-text-secondary)' }}>{proc.cadOverlay}</p>
+            <div className="flex items-center gap-4 mt-2">
               <div>
                 <div className="text-lg font-bold text-[#00d4aa]">{totalSteps}</div>
                 <div className="text-[0.55rem]" style={{ color: 'var(--color-text-secondary)' }}>Passi totali</div>
