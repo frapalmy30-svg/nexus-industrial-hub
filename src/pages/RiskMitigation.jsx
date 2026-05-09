@@ -690,13 +690,13 @@ export default function RiskMitigation() {
               </button>
             )}
 
-            <button onClick={handlePlanShip} disabled={planningShip || plannedShip || !aiComplete}
+            {aiComplete && verdict === 'RIFIUTATA' && <button onClick={handlePlanShip} disabled={planningShip || plannedShip}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all"
               style={plannedShip
                 ? { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }
                 : { background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>
               {planningShip ? <><Loader2 size={14} className="animate-spin" /> Pianificazione...</> : plannedShip ? <><CheckCircle size={14} /> Spedizione Pianificata</> : <><Truck size={14} /> Pianifica Spedizione Ricambio a Pagamento</>}
-            </button>
+            </button>}
 
             {/* Riepilogo spedizione confermata */}
             {plannedShip && shipConfirmation && (
