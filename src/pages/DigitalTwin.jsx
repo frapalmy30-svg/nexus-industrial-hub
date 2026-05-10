@@ -573,10 +573,13 @@ export default function DigitalTwin() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [synced, setSynced] = useState(true);
+  const [synced, setSynced] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncLog, setSyncLog] = useState([]);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosed, setDiagnosed] = useState(false);
   const [diagResults, setDiagResults] = useState([]);
+  const [syncedData, setSyncedData] = useState(selected);
   const viewportRef = useRef(null);
 
   useEffect(() => {
@@ -586,12 +589,59 @@ export default function DigitalTwin() {
   }, [autoRotate, focusComp]);
 
   useEffect(() => {
-    setFocusComp(-1); setDiagnosed(false); setDiagResults([]); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15);
+    setFocusComp(-1); setDiagnosed(false); setDiagResults([]); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15); setSynced(false); setSyncing(false); setSyncLog([]); setSyncedData(selected);
   }, [selected]);
 
   const handleMouseDown = useCallback((e) => { setDragging(true); setDragStart({ x: e.clientX, y: e.clientY }); setAutoRotate(false); }, []);
   const handleMouseMove = useCallback((e) => { if (!dragging) return; setRotY(r => r + (e.clientX - dragStart.x) * 0.5); setRotX(r => Math.max(-30, Math.min(45, r + (e.clientY - dragStart.y) * 0.3))); setDragStart({ x: e.clientX, y: e.clientY }); }, [dragging, dragStart]);
   const handleMouseUp = useCallback(() => setDragging(false), []);
+
+  const handleSync = () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSynced(false);
+    setSyncLog([]);
+
+    const addLog = (msg) => setSyncLog(prev => [...prev, msg]);
+    let delay = 0;
+
+    const steps = [
+      `> Connessione al server SCADA: ${selected.asset}`,
+      `> Caricamento dati di produzione in tempo reale...`,
+      `> Lettura sensori OEE — Disponibilità: ${selected.oee.disponibilita}%`,
+      `> Lettura sensori OEE — Performance: ${selected.oee.performance}%`,
+      `> Lettura sensori OEE — Qualità: ${selected.oee.qualita}%`,
+      `> Analisi efficienza componenti (${selected.components.length} rilevati)`,
+      `> Caricamento dati storici ultimi 24h...`,
+      `> Sincronizzazione completata ✓`,
+    ];
+
+    steps.forEach((step, idx) => {
+      setTimeout(() => addLog(step), delay);
+      delay += 250;
+    });
+
+    setTimeout(() => {
+      const updatedData = {
+        ...selected,
+        oee: {
+          disponibilita: Math.min(100, Math.max(50, selected.oee.disponibilita + Math.floor(Math.random() * 5) - 2)),
+          performance: Math.min(100, Math.max(50, selected.oee.performance + Math.floor(Math.random() * 5) - 2)),
+          qualita: Math.min(100, Math.max(50, selected.oee.qualita + Math.floor(Math.random() * 5) - 2)),
+          uptime: Math.min(100, Math.max(50, selected.oee.uptime + Math.floor(Math.random() * 5) - 2)),
+          mtbf: Math.min(100, Math.max(50, selected.oee.mtbf + Math.floor(Math.random() * 5) - 2)),
+          mttr: Math.min(100, Math.max(50, selected.oee.mttr + Math.floor(Math.random() * 5) - 2)),
+        },
+        components: selected.components.map(c => ({
+          ...c,
+          eff: Math.max(50, Math.min(100, c.eff + Math.floor(Math.random() * 4) - 2))
+        }))
+      };
+      setSyncedData(updatedData);
+      setSyncing(false);
+      setSynced(true);
+    }, delay + 300);
+  };
 
   const handleDiagnose = () => {
     if (diagnosing) return;
@@ -679,10 +729,11 @@ export default function DigitalTwin() {
               <OEERadar data={selected.oee} />
             </div>
             <div className="flex flex-col gap-2 flex-shrink-0">
-              <button onClick={() => setSynced(!synced)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.6rem] font-semibold transition-all"
+              <button onClick={handleSync} disabled={syncing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.6rem] font-semibold transition-all"
                 style={{ border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', background: synced ? 'rgba(0,212,170,0.08)' : 'transparent' }}>
-                <RefreshCw size={11} /> {synced ? 'Sincronizzato' : 'Sincronizza'}
+                {syncing ? <><Loader2 size={11} className="animate-spin" /> Sincronizzando...</> : synced ? <><CheckCircle size={11} /> Sincronizzato</> : <><RefreshCw size={11} /> Sincronizza</>}
               </button>
+              <span className="text-[0.45rem]" style={{ color: 'var(--color-text-secondary)' }}>Last: {new Date().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}</span>
               <button onClick={handleDiagnose} disabled={diagnosing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.6rem] font-semibold transition-all"
                 style={{ border: `1px solid ${diagnosed ? (faultyCount > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)') : 'rgba(0,212,170,0.4)'}`, color: diagnosed ? (faultyCount > 0 ? '#ef4444' : '#22c55e') : '#00d4aa', background: diagnosed ? (faultyCount > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)') : 'transparent' }}>
                 {diagnosing ? <><Loader2 size={11} className="animate-spin" /> Diagnosi...</> : diagnosed ? <><CheckCircle size={11} /> {faultyCount > 0 ? `${faultyCount} Allarmi` : 'Diagnosi OK'}</> : <><Activity size={11} /> Diagnosi AI</>}
@@ -700,10 +751,57 @@ export default function DigitalTwin() {
               ))}
             </div>
           )}
+          {(syncing || syncLog.length > 0) && (
+            <div className="mt-2 pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
+              <div className="text-xs font-bold mb-1.5" style={{ color: '#00d4aa' }}>LOG SINCRONIZZAZIONE</div>
+              <div className="p-2 rounded-lg text-[0.5rem] font-mono h-24 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,212,170,0.2)' }}>
+                {syncLog.map((log, i) => (
+                  <div key={i} style={{ color: '#00d4aa', marginBottom: '2px' }}>{log}</div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* OEE + COMPONENTI + ALLARMI */}
-        <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-3">
+          {/* 3D VIEWPORT — 2 cols */}
+          <div className="col-span-2 rounded-xl overflow-hidden" style={{ background: '#040d1a', border: '1px solid var(--color-border)' }}>
+            <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>GEMELLO DIGITALE 3D</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[0.45rem] font-mono" style={{ color: 'var(--color-text-secondary)' }}>{selected.catia}</span>
+                <span className="text-[0.45rem] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,212,170,0.08)', color: '#00d4aa', border: '1px solid rgba(0,212,170,0.2)' }}>Zoom: {Math.round(zoom*100)}%</span>
+              </div>
+            </div>
+
+            <div ref={viewportRef} className="relative" style={{ minHeight: '380px' }}>
+              <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio:'16/9', background:'#040d1a', border:'1px solid rgba(0,212,170,0.18)', boxShadow:'0 0 80px rgba(0,212,170,0.07)' }}>
+                <HologramViewer machineId={selected.id} components={selected.components} focusIndex={focusComp} autoRotate={autoRotate} onToggleRotate={() => setAutoRotate(!autoRotate)} style={{ width:'100%', height:'100%' }} />
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 338" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <filter id="ng"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="nf"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="ag"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <path d="M8,8 L8,22 M8,8 L22,8" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
+                  <path d="M592,8 L592,22 M592,8 L578,8" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
+                  <path d="M8,330 L8,316 M8,330 L22,330" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
+                  <path d="M592,330 L592,316 M592,330 L578,330" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
+                  <text x="592" y="18" fill="#00d4aa" fontSize="5.5" fontFamily="monospace" textAnchor="end" opacity="0.4">⟳ ORBIT · SCROLL ZOOM</text>
+                  <text x="300" y="332" fill="#00d4aa" fontSize="6" fontFamily="monospace" textAnchor="middle" opacity="0.28">{selected.catia}</text>
+                </svg>
+                {focusComp>=0&&<div className="absolute inset-0 rounded-xl pointer-events-none" style={{border:'2px solid rgba(0,212,170,0.55)',boxShadow:'inset 0 0 28px rgba(0,212,170,0.12)'}}/>}
+              </div>
+              {focusComp >= 0 && selected.components[focusComp] && (
+                <div className="absolute bottom-2 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold pointer-events-none" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', backdropFilter: 'blur(8px)' }}>
+                  <Box size={10} /> {selected.components[focusComp].name} — {selected.components[focusComp].value}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT: Components */}
+          <div className="space-y-3">
             <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(0,212,170,0.03)' }}>
                 <div className="flex items-center gap-1.5"><Settings size={11} className="text-[#00d4aa]" /><h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>COMPONENTI</h3></div>
@@ -761,7 +859,6 @@ export default function DigitalTwin() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

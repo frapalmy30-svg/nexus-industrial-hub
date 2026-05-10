@@ -15,14 +15,14 @@ L.Icon.Default.mergeOptions({
 });
 
 const routeCoords = [
-  [44.9630, 7.6080],
-  [45.0930, 7.5220],
-  [45.0350, 7.6100],
-  [45.0370, 7.5130],
-  [45.0950, 7.6700],
-  [44.9700, 7.7700],
-  [45.0680, 7.6600],
-  [45.1350, 7.7650],
+  [44.9630, 7.6080], // 00 Automazioni HQ
+  [45.0930, 7.5220], // 01 NKE Alpignano
+  [45.0350, 7.6100], // 02 Stellantis Mirafiori
+  [45.0370, 7.5130], // 07 Festo Rivalta
+  [45.0950, 7.6700], // 03 IVECO Lungo Stura
+  [44.9700, 7.7700], // 06 OMG Cambiano
+  [45.0680, 7.6600], // 05 B2 Progetti
+  [45.1350, 7.7650], // 04 Meccanica Surra
 ];
 
 const optimizedCoords = [
@@ -45,25 +45,25 @@ function createStopIcon(number, color = '#00d4aa') {
 }
 
 const originalRoute = [
-  { stop: '00 Automazioni HQ', idx: '00' },
-  { stop: '01 NKE Alpignano', idx: '01' },
-  { stop: '02 Stellantis Mirafiori', idx: '02' },
-  { stop: '07 Festo Rivalta', idx: '07', bad: true },
-  { stop: '03 IVECO Lungo Stura', idx: '03', bad: true },
-  { stop: '06 OMG Cambiano', idx: '06', bad: true },
-  { stop: '05 B2 Progetti', idx: '05' },
-  { stop: '04 Meccanica Surra', idx: '04' },
+  { stop: '00 Automazioni HQ', idx: '00', time: '07:30' },
+  { stop: '01 NKE Alpignano', idx: '01', time: '08:10' },
+  { stop: '02 Stellantis Mirafiori', idx: '02', time: '08:55' },
+  { stop: '07 Festo Rivalta', idx: '07', bad: true, time: '12:20' },
+  { stop: '03 IVECO Lungo Stura', idx: '03', bad: true, time: '10:25' },
+  { stop: '06 OMG Cambiano', idx: '06', bad: true, time: '11:10' },
+  { stop: '05 B2 Progetti', idx: '05', time: '11:55' },
+  { stop: '04 Meccanica Surra', idx: '04', time: '09:40' },
 ];
 
 const optimizedRoute = [
-  { stop: '00 Automazioni HQ', idx: '00', changed: false },
-  { stop: '07 Festo Rivalta', idx: '07', changed: true },
-  { stop: '01 NKE Alpignano', idx: '01', changed: true },
-  { stop: '02 Stellantis Mirafiori', idx: '02', changed: false },
-  { stop: '05 B2 Progetti', idx: '05', changed: true },
-  { stop: '03 IVECO Lungo Stura', idx: '03', changed: true },
-  { stop: '04 Meccanica Surra', idx: '04', changed: true },
-  { stop: '06 OMG Cambiano', idx: '06', changed: true },
+  { stop: '00 Automazioni HQ', idx: '00', changed: false, time: '07:30' },
+  { stop: '07 Festo Rivalta', idx: '07', changed: true, time: '08:10' },
+  { stop: '01 NKE Alpignano', idx: '01', changed: true, time: '08:55' },
+  { stop: '02 Stellantis Mirafiori', idx: '02', changed: false, time: '09:40' },
+  { stop: '05 B2 Progetti', idx: '05', changed: true, time: '10:25' },
+  { stop: '03 IVECO Lungo Stura', idx: '03', changed: true, time: '11:10' },
+  { stop: '04 Meccanica Surra', idx: '04', changed: true, time: '11:55' },
+  { stop: '06 OMG Cambiano', idx: '06', changed: true, time: '12:20' },
 ];
 
 const truckIcon = L.divIcon({
@@ -204,7 +204,7 @@ export default function Logistica() {
               {!optimized ? (
                 // Prima dell'ottimizzazione: elenco originale
                 originalRoute.map((route, i) => {
-                  const stop = milkRunStops[i];
+                  const stop = milkRunStops.find(s => s.id === route.idx);
                   return (
                     <div key={route.idx} className="card flex items-start gap-3 p-3"
                       style={i === 0 ? { borderLeft: '3px solid #f59e0b' } : { borderLeft: '3px solid transparent' }}>
@@ -221,7 +221,7 @@ export default function Logistica() {
                           {stop.action}
                         </span>
                       )}
-                      <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop?.time}</span>
+                      <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{route.time}</span>
                     </div>
                   );
                 })
@@ -245,7 +245,7 @@ export default function Logistica() {
                           {stop.action}
                         </span>
                       )}
-                      <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop?.time}</span>
+                      <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{route.time}</span>
                     </div>
                   );
                 })
