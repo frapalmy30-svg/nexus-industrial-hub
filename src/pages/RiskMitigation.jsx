@@ -457,6 +457,24 @@ export default function RiskMitigation() {
   const aiBoxes = aiResult?.boundingBoxes || [];
   const aiLogLines = aiResult?.aiLog || [];
 
+  // Spedizione automatica se garanzia APPROVATA
+  useEffect(() => {
+    if (aiComplete && verdict === 'APPROVATA' && !plannedShip) {
+      const today = new Date();
+      const eta = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
+      setShipData({
+        sparePart: `Ricambio ${selectedTicket.component}`,
+        quantity: 1,
+        address: selectedTicket.client,
+        courier: 'DHL Express',
+        deliveryDate: eta.toISOString().split('T')[0],
+        priority: 'standard',
+        notes: `Restituzione pezzo in garanzia — Ticket ${selectedTicket.id}`,
+      });
+      setTimeout(() => setPlannedShip(true), 1200);
+    }
+  }, [aiComplete, verdict]);
+
   return (
     <div className="p-4">
       <AlertBar message="ALERT: 2 reclami garanzia in attesa di analisi AI — Coda di elaborazione attiva" />
@@ -698,8 +716,23 @@ export default function RiskMitigation() {
               {planningShip ? <><Loader2 size={14} className="animate-spin" /> Pianificazione...</> : plannedShip ? <><CheckCircle size={14} /> Spedizione Pianificata</> : <><Truck size={14} /> Pianifica Spedizione Ricambio a Pagamento</>}
             </button>}
 
-            {/* Riepilogo spedizione confermata */}
-            {plannedShip && shipConfirmation && (
+            {/* Spedizione automatica per garanzia APPROVATA */}
+            {aiComplete && verdict === 'APPROVATA' && plannedShip && (
+              <div className="rounded-xl p-3 mt-2" style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Truck size={14} className="text-green-400" />
+                  <span className="text-xs font-bold text-green-400">RESTITUZIONE PEZZO AVVIATA AUTOMATICAMENTE</span>
+                </div>
+                <div className="space-y-1 text-[0.65rem]" style={{ color: 'var(--color-text-secondary)' }}>
+                  <div className="flex justify-between"><span>Motivo</span><span style={{ color: 'var(--color-text-primary)' }}>Garanzia approvata — Restituzione automatica</span></div>
+                  <div className="flex justify-between"><span>Componente</span><span className="font-mono font-bold" style={{ color: 'var(--color-text-primary)' }}>{selectedTicket.component}</span></div>
+                  <div className="flex justify-between"><span>Destinazione</span><span style={{ color: 'var(--color-text-primary)' }}>{selectedTicket.client}</span></div>
+                </div>
+              </div>
+            )}
+
+            {/* Riepilogo spedizione confermata a pagamento */}
+            {aiComplete && verdict === 'RIFIUTATA' && plannedShip && shipConfirmation && (
               <div className="rounded-xl p-3 mt-2" style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.3)' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <Truck size={14} className="text-green-400" />

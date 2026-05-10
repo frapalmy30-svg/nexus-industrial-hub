@@ -199,27 +199,36 @@ export default function Logistica() {
             </div>
 
             {/* STOP LIST */}
-            <div className="space-y-2">
-              {milkRunStops.map((stop, i) => (
-                <div key={stop.id} className="card flex items-start gap-3 p-3"
-                  style={i === 0 ? { borderLeft: '3px solid #f59e0b' } : { borderLeft: '3px solid transparent' }}>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
-                    style={{ background: i === 0 ? '#f59e0b' : 'var(--color-bg-secondary)', color: i === 0 ? '#0a0e17' : 'var(--color-text-primary)', border: '1px solid var(--color-border)', flexShrink: 0 }}>
-                    {stop.id}
+            {optimized ? (
+              <div className="space-y-2">
+                {milkRunStops.map((stop, i) => (
+                  <div key={stop.id} className="card flex items-start gap-3 p-3"
+                    style={i === 0 ? { borderLeft: '3px solid #f59e0b' } : { borderLeft: '3px solid transparent' }}>
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
+                      style={{ background: i === 0 ? '#f59e0b' : 'var(--color-bg-secondary)', color: i === 0 ? '#0a0e17' : 'var(--color-text-primary)', border: '1px solid var(--color-border)', flexShrink: 0 }}>
+                      {stop.id}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold">{stop.name}</div>
+                      {stop.detail && <div className="text-[0.65rem] mt-0.5 leading-snug" style={{ color: 'var(--color-text-secondary)' }}>{stop.detail}</div>}
+                    </div>
+                    {stop.action && (
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded flex-shrink-0 ${stop.action === 'CONSEGNA' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                        {stop.action}
+                      </span>
+                    )}
+                    <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop.time}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold">{stop.name}</div>
-                    {stop.detail && <div className="text-[0.65rem] mt-0.5 leading-snug" style={{ color: 'var(--color-text-secondary)' }}>{stop.detail}</div>}
-                  </div>
-                  {stop.action && (
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded flex-shrink-0 ${stop.action === 'CONSEGNA' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                      {stop.action}
-                    </span>
-                  )}
-                  <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop.time}</span>
+                ))}
+              </div>
+            ) : (
+              <div className="card flex items-center justify-center p-8 text-center" style={{ background: 'rgba(0,212,170,0.05)', border: '1px solid rgba(0,212,170,0.2)' }}>
+                <div className="flex flex-col items-center gap-2">
+                  <MapPin size={24} style={{ color: 'rgba(0,212,170,0.6)' }} />
+                  <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Ottimizza il percorso per visualizzare le fermate ordinate</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
             <div className="card flex gap-4 text-xs">
               <div>

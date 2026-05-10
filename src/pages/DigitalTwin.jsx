@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import HologramViewer from '../components/HologramViewer';
-import { Play, Pause, RotateCcw, Zap, Activity, Settings, CheckCircle, Loader2, Box, ZoomIn, ZoomOut, RefreshCw, Sparkles, AlertTriangle } from 'lucide-react';
+import { Play, Pause, RotateCcw, Zap, Activity, Settings, CheckCircle, Loader2, Box, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 import { GLB_PRODUCT_MAP, getGLBModelIdForProduct } from '../data/glbMapping.js';
-import { useGoogleAI } from '../hooks/useGoogleAI';
 
 // Assets moved to /images/machines/holo/
 
@@ -578,11 +577,7 @@ export default function DigitalTwin() {
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosed, setDiagnosed] = useState(false);
   const [diagResults, setDiagResults] = useState([]);
-  const [simulating, setSimulating] = useState(false);
-  const [simulated, setSimulated] = useState(false);
-  const [simLines, setSimLines] = useState([]);
   const viewportRef = useRef(null);
-  const simIntervalRef = useRef(null);
 
   useEffect(() => {
     if (!autoRotate || focusComp >= 0) return;
@@ -632,65 +627,6 @@ export default function DigitalTwin() {
   ];
   const faultLines = selected.components.filter(c => c.eff < 85).map(c => `> [!] ALLARME: ${c.name} — Efficienza ${c.eff}% (soglia: 85%) — Intervento necessario`);
 
-  // Hook Gemini AI per ottimizzazione reale
-  const { optimizeProduction, hasApiKey, error: googleAIError } = useGoogleAI();
-  const [aiOptResult, setAiOptResult] = useState(null);
-  const [aiOptError, setAiOptError] = useState(null);
-
-  const handleSimulate = async () => {
-    if (simulating) return;
-    setSimulating(true); setSimulated(false); setSimLines([]); setAiOptResult(null); setAiOptError(null);
-
-    if (!hasApiKey) {
-      setAiOptError('VITE_GOOGLE_AI_API_KEY mancante in .env.local');
-      setSimulating(false);
-      return;
-    }
-
-    // Chiamata reale a Gemini per ottimizzazione produzione
-    const productData = {
-      name: selected.name,
-      asset: selected.asset,
-      oee: selected.oee,
-      status: selected.status,
-      cycles: selected.cycles,
-      pezziOggi: selected.pezziOggi,
-      scarti: selected.scarti,
-      components: selected.components,
-      production: selected.production,
-      target: selected.target,
-    };
-
-    const result = await optimizeProduction(productData);
-    if (!result) {
-      setAiOptError(googleAIError || 'Errore di rete o API non disponibile');
-      setSimulating(false);
-      return;
-    }
-    if (result.parseError) {
-      setAiOptError('Risposta AI non interpretabile');
-      setSimulating(false);
-      return;
-    }
-
-    setAiOptResult(result);
-
-    // Anima il log uno per uno
-    if (simIntervalRef.current) clearInterval(simIntervalRef.current);
-    const lines = result.simulationLog || [];
-    let idx = 0;
-    simIntervalRef.current = setInterval(() => {
-      if (idx < lines.length) {
-        setSimLines(p => [...p, lines[idx] || '']);
-        idx++;
-      } else {
-        clearInterval(simIntervalRef.current);
-        simIntervalRef.current = null;
-        setSimulating(false);
-        setSimulated(true);
-      }
-    }, 350);
-  };
 
   const avgOee = Math.round(Object.values(selected.oee).reduce((s, v) => s + v, 0) / 6);
   const faultyCount = selected.components.filter(c => c.status !== 'OK').length;
@@ -869,87 +805,56 @@ export default function DigitalTwin() {
           </div>
         </div>
 
-        {/* Simulation Gemini AI */}
-        <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
-          <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-            <div className="flex items-center gap-1.5">
-              <Sparkles size={11} className="text-blue-400" />
-              <h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>OTTIMIZZAZIONE LINEA · GEMINI AI</h3>
+        {/* OEE Radar + Allarmi Attivi */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* OEE Radar */}
+          <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
+            <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>OEE · INDICI GLOBALI</h3>
             </div>
-            <button onClick={handleSimulate} disabled={simulating || !hasApiKey} className="text-[0.5rem] px-2.5 py-1 rounded font-semibold flex items-center gap-1 transition-all"
-              style={{
-                background: simulated ? 'rgba(34,197,94,0.1)' : simulating ? 'rgba(168,85,247,0.1)' : 'linear-gradient(135deg, #4285f4, #1a73e8)',
-                border: `1px solid ${simulated ? 'rgba(34,197,94,0.3)' : simulating ? 'rgba(168,85,247,0.3)' : 'rgba(66,133,244,0.4)'}`,
-                color: simulated ? '#22c55e' : simulating ? '#a855f7' : '#fff',
-                opacity: hasApiKey ? 1 : 0.5,
-              }}
-              title={hasApiKey ? 'Gemini analizza il macchinario' : 'API Key mancante'}>
-              {simulating ? <><Loader2 size={9} className="animate-spin" /> Gemini sta analizzando...</> : simulated ? <><CheckCircle size={9} /> Ottimizzato</> : <><Sparkles size={9} /> Ottimizza con Gemini</>}
-            </button>
-          </div>
-          <div className="p-2.5 font-mono text-[0.5rem] leading-relaxed overflow-y-auto" style={{ maxHeight: '110px', color: '#67e8f9', background: 'rgba(0,8,22,0.5)' }}>
-            {aiOptError && <div style={{ color: '#ef4444' }}>⚠ {aiOptError}</div>}
-            {simLines.length > 0 ? simLines.map((l, i) => (
-              <div key={i} style={{ color: (l||'').includes('[!]') ? '#ef4444' : (l||'').includes('Risparmio') || (l||'').includes('Convergenza') ? '#22c55e' : '#67e8f9' }}>{l}</div>
-            )) : (
-              <div style={{ color: 'var(--color-text-secondary)' }}>Premi "Ottimizza con Gemini" — l'AI analizzerà OEE, componenti, cicli e fornirà suggerimenti reali per carrello, spazio, tempi.</div>
-            )}
+            <div className="p-2" style={{ minHeight: '180px' }}>
+              <OEERadar data={selected.oee} />
+            </div>
           </div>
 
-          {/* AI Optimization results */}
-          {simulated && aiOptResult && (
-            <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[0.6rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>RISULTATI OTTIMIZZAZIONE GEMINI</span>
-                {aiOptResult.optimizationScore != null && (
-                  <span className="text-[0.55rem] font-mono px-2 py-0.5 rounded" style={{ background: 'rgba(66,133,244,0.15)', color: '#4285f4' }}>
-                    Score: {aiOptResult.optimizationScore}/100
-                  </span>
-                )}
-              </div>
-
-              {aiOptResult.predictedOEE && (
-                <div className="flex items-center gap-3 text-[0.6rem] p-2 rounded" style={{ background: 'rgba(34,197,94,0.05)' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>OEE: {aiOptResult.predictedOEE.currentOEE}%</span>
-                  <span className="text-green-400">→</span>
-                  <span style={{ color: '#22c55e', fontWeight: 'bold' }}>{aiOptResult.predictedOEE.optimizedOEE}% (+{aiOptResult.predictedOEE.delta})</span>
+          {/* Allarmi Attivi */}
+          <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
+            <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>ALLARMI ATTIVI</h3>
+            </div>
+            <div className="p-2.5 space-y-2 overflow-y-auto" style={{ maxHeight: '220px' }}>
+              {selected.components.filter(c => c.status !== 'OK').length === 0 ? (
+                <div className="text-[0.65rem] text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
+                  ✓ Tutti i sistemi operativi
                 </div>
-              )}
-
-              {aiOptResult.suggestions && aiOptResult.suggestions.length > 0 && (
-                <div className="space-y-1.5">
-                  <span className="text-[0.55rem] font-bold" style={{ color: 'var(--color-text-secondary)' }}>SUGGERIMENTI AI</span>
-                  {aiOptResult.suggestions.slice(0, 4).map((s, i) => (
-                    <div key={i} className="p-2 rounded" style={{
-                      background: s.priority === 'alta' ? 'rgba(239,68,68,0.05)' : s.priority === 'media' ? 'rgba(245,158,11,0.05)' : 'rgba(66,133,244,0.05)',
-                      borderLeft: `2px solid ${s.priority === 'alta' ? '#ef4444' : s.priority === 'media' ? '#f59e0b' : '#4285f4'}`,
-                    }}>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[0.5rem] px-1 py-0.5 rounded font-bold uppercase" style={{ background: 'rgba(255,255,255,0.05)', color: s.priority === 'alta' ? '#ef4444' : s.priority === 'media' ? '#f59e0b' : '#4285f4' }}>{s.category}</span>
-                        <span className="text-[0.6rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>{s.title}</span>
+              ) : (
+                selected.components.filter(c => c.status !== 'OK').map((c, i) => {
+                  const actionMap = {
+                    'ATTENZIONE': 'Monitorare — Pianificare ispezione entro 7 giorni',
+                    'CRITICO': 'Intervento immediato — Fermare linea se possibile'
+                  };
+                  const bgColor = c.status === 'CRITICO' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)';
+                  const borderColor = c.status === 'CRITICO' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)';
+                  const textColor = c.status === 'CRITICO' ? '#ef4444' : '#f59e0b';
+                  return (
+                    <div key={i} className="p-2 rounded text-[0.6rem]" style={{ background: bgColor, border: `1px solid ${borderColor}` }}>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: `${textColor}20`, color: textColor, fontSize: '0.5rem' }}>{c.status}</span>
+                        <span style={{ color: 'var(--color-text-primary)' }}>{c.name}</span>
                       </div>
-                      <p className="text-[0.55rem]" style={{ color: 'var(--color-text-secondary)' }}>{s.description}</p>
-                      {s.expectedSaving && (
-                        <p className="text-[0.55rem] font-mono mt-1" style={{ color: '#22c55e' }}>💰 {s.expectedSaving}</p>
-                      )}
+                      <div className="flex items-center justify-between px-1">
+                        <span style={{ color: 'var(--color-text-secondary)' }}>{c.value}</span>
+                        <span style={{ color: textColor, fontWeight: 'bold' }}>{c.eff}%</span>
+                      </div>
+                      <div className="text-[0.55rem] mt-1 px-1" style={{ color: 'var(--color-text-secondary)' }}>
+                        {actionMap[c.status]}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {aiOptResult.criticalAlerts && aiOptResult.criticalAlerts.length > 0 && (
-                <div className="p-2 rounded" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                  <div className="flex items-center gap-1 mb-1">
-                    <AlertTriangle size={10} className="text-red-400" />
-                    <span className="text-[0.55rem] font-bold text-red-400">ALLARMI CRITICI</span>
-                  </div>
-                  {aiOptResult.criticalAlerts.map((a, i) => (
-                    <p key={i} className="text-[0.55rem]" style={{ color: 'var(--color-text-secondary)' }}>▸ {a}</p>
-                  ))}
-                </div>
+                  );
+                })
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
