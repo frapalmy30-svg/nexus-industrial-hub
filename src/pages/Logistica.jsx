@@ -336,20 +336,6 @@ export default function Logistica() {
                       </div>
                     </div>
                   </div>
-
-                  <h4 className="text-xs font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>CONFRONTO SEQUENZA</h4>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    <div className="text-xs font-semibold pb-1 border-b" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>Originale</div>
-                    <div className="text-xs font-semibold pb-1 border-b" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>Ottimizzato (AI)</div>
-                    {originalRoute.map((r, i) => (
-                      <div key={`orig-${i}`} className={`text-xs py-0.5 ${r.bad ? 'text-red-400 font-semibold' : ''}`}>{r.stop} {r.bad ? '⚠' : ''}</div>
-                    ))}
-                    {optimizedRoute.map((r, i) => (
-                      <div key={`opt-${i}`} className={`text-xs py-0.5 ${r.changed ? 'text-[#00d4aa] font-semibold' : ''}`} style={{ gridColumn: 2, gridRow: i + 2 }}>
-                        {r.stop}
-                      </div>
-                    ))}
-                  </div>
                 </>
               )}
             </div>
