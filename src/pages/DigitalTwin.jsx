@@ -702,46 +702,8 @@ export default function DigitalTwin() {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
-          {/* 3D VIEWPORT — 2 cols */}
-          <div className="col-span-2 rounded-xl overflow-hidden" style={{ background: '#040d1a', border: '1px solid var(--color-border)' }}>
-            <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <span className="text-xs font-bold" style={{ color: 'var(--color-text-primary)' }}>GEMELLO DIGITALE 3D</span>
-              <div className="flex items-center gap-2">
-                <span className="text-[0.45rem] font-mono" style={{ color: 'var(--color-text-secondary)' }}>{selected.catia}</span>
-                <span className="text-[0.45rem] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,212,170,0.08)', color: '#00d4aa', border: '1px solid rgba(0,212,170,0.2)' }}>Zoom: {Math.round(zoom*100)}%</span>
-              </div>
-            </div>
-
-            <div ref={viewportRef} className="relative" style={{ minHeight: '380px' }}>
-              <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio:'16/9', background:'#040d1a', border:'1px solid rgba(0,212,170,0.18)', boxShadow:'0 0 80px rgba(0,212,170,0.07)' }}>
-                <HologramViewer machineId={selected.id} components={selected.components} focusIndex={focusComp} autoRotate={autoRotate} onToggleRotate={() => setAutoRotate(!autoRotate)} style={{ width:'100%', height:'100%' }} />
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 338" preserveAspectRatio="xMidYMid meet">
-                  <defs>
-                    <filter id="ng"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="nf"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="ag"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                  </defs>
-                  <path d="M8,8 L8,22 M8,8 L22,8" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <path d="M592,8 L592,22 M592,8 L578,8" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <path d="M8,330 L8,316 M8,330 L22,330" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <path d="M592,330 L592,316 M592,330 L578,330" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <text x="592" y="18" fill="#00d4aa" fontSize="5.5" fontFamily="monospace" textAnchor="end" opacity="0.4">⟳ ORBIT · SCROLL ZOOM</text>
-                  {/* Componenti alerts and status removed per user request */}
-                  <text x="300" y="332" fill="#00d4aa" fontSize="6" fontFamily="monospace" textAnchor="middle" opacity="0.28">{selected.catia}</text>
-                </svg>
-                {focusComp>=0&&<div className="absolute inset-0 rounded-xl pointer-events-none" style={{border:'2px solid rgba(0,212,170,0.55)',boxShadow:'inset 0 0 28px rgba(0,212,170,0.12)'}}/>}
-              </div>
-              {focusComp >= 0 && selected.components[focusComp] && (
-                <div className="absolute bottom-2 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold pointer-events-none" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', backdropFilter: 'blur(8px)' }}>
-                  <Box size={10} /> {selected.components[focusComp].name} — {selected.components[focusComp].value}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT: Components */}
-          <div className="space-y-3">
+        {/* OEE + COMPONENTI + ALLARMI */}
+        <div className="space-y-3">
             <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
               <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)', background: 'rgba(0,212,170,0.03)' }}>
                 <div className="flex items-center gap-1.5"><Settings size={11} className="text-[#00d4aa]" /><h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>COMPONENTI</h3></div>
@@ -800,57 +762,6 @@ export default function DigitalTwin() {
           </div>
         </div>
 
-        {/* OEE Radar + Allarmi Attivi */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* OEE Radar */}
-          <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
-            <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-              <h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>OEE · INDICI GLOBALI</h3>
-            </div>
-            <div className="p-2" style={{ minHeight: '180px' }}>
-              <OEERadar data={selected.oee} />
-            </div>
-          </div>
-
-          {/* Allarmi Attivi */}
-          <div className="rounded-xl overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}>
-            <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>
-              <h3 className="text-[0.65rem] font-bold" style={{ color: 'var(--color-text-primary)' }}>ALLARMI ATTIVI</h3>
-            </div>
-            <div className="p-2.5 space-y-2 overflow-y-auto" style={{ maxHeight: '220px' }}>
-              {selected.components.filter(c => c.status !== 'OK').length === 0 ? (
-                <div className="text-[0.65rem] text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
-                  ✓ Tutti i sistemi operativi
-                </div>
-              ) : (
-                selected.components.filter(c => c.status !== 'OK').map((c, i) => {
-                  const actionMap = {
-                    'ATTENZIONE': 'Monitorare — Pianificare ispezione entro 7 giorni',
-                    'CRITICO': 'Intervento immediato — Fermare linea se possibile'
-                  };
-                  const bgColor = c.status === 'CRITICO' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)';
-                  const borderColor = c.status === 'CRITICO' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)';
-                  const textColor = c.status === 'CRITICO' ? '#ef4444' : '#f59e0b';
-                  return (
-                    <div key={i} className="p-2 rounded text-[0.6rem]" style={{ background: bgColor, border: `1px solid ${borderColor}` }}>
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="px-1.5 py-0.5 rounded font-bold uppercase" style={{ background: `${textColor}20`, color: textColor, fontSize: '0.5rem' }}>{c.status}</span>
-                        <span style={{ color: 'var(--color-text-primary)' }}>{c.name}</span>
-                      </div>
-                      <div className="flex items-center justify-between px-1">
-                        <span style={{ color: 'var(--color-text-secondary)' }}>{c.value}</span>
-                        <span style={{ color: textColor, fontWeight: 'bold' }}>{c.eff}%</span>
-                      </div>
-                      <div className="text-[0.55rem] mt-1 px-1" style={{ color: 'var(--color-text-secondary)' }}>
-                        {actionMap[c.status]}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
