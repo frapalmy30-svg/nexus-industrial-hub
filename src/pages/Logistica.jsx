@@ -201,45 +201,56 @@ export default function Logistica() {
             {/* STOP LIST */}
             <div className="space-y-2">
               <h3 className="text-xs font-bold" style={{ color: 'var(--color-text-secondary)' }}>FERMATE DA EFFETTUARE</h3>
-              {milkRunStops.map((stop, i) => (
-                <div key={stop.id} className="card flex items-start gap-3 p-3"
-                  style={i === 0 ? { borderLeft: '3px solid #f59e0b' } : { borderLeft: '3px solid transparent' }}>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
-                    style={{ background: i === 0 ? '#f59e0b' : 'var(--color-bg-secondary)', color: i === 0 ? '#0a0e17' : 'var(--color-text-primary)', border: '1px solid var(--color-border)', flexShrink: 0 }}>
-                    {stop.id}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold">{stop.name}</div>
-                    {stop.detail && <div className="text-[0.65rem] mt-0.5 leading-snug" style={{ color: 'var(--color-text-secondary)' }}>{stop.detail}</div>}
-                  </div>
-                  {stop.action && (
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded flex-shrink-0 ${stop.action === 'CONSEGNA' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                      {stop.action}
-                    </span>
-                  )}
-                  {!optimized && <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop.time}</span>}
-                </div>
-              ))}
-            </div>
-
-            {/* CONFRONTO SEQUENZA - solo dopo ottimizzazione */}
-            {optimized && (
-              <div className="card">
-                <h4 className="text-xs font-semibold mb-3" style={{ color: 'var(--color-text-secondary)' }}>CONFRONTO SEQUENZA</h4>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  <div className="text-xs font-semibold pb-1 border-b" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>Originale</div>
-                  <div className="text-xs font-semibold pb-1 border-b" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>Ottimizzato (AI)</div>
-                  {originalRoute.map((r, i) => (
-                    <div key={`orig-${i}`} className={`text-xs py-0.5 ${r.bad ? 'text-red-400 font-semibold' : ''}`}>{r.stop} {r.bad ? '⚠' : ''}</div>
-                  ))}
-                  {optimizedRoute.map((r, i) => (
-                    <div key={`opt-${i}`} className={`text-xs py-0.5 ${r.changed ? 'text-[#00d4aa] font-semibold' : ''}`} style={{ gridColumn: 2, gridRow: i + 2 }}>
-                      {r.stop}
+              {!optimized ? (
+                // Prima dell'ottimizzazione: elenco originale
+                originalRoute.map((route, i) => {
+                  const stop = milkRunStops[i];
+                  return (
+                    <div key={route.idx} className="card flex items-start gap-3 p-3"
+                      style={i === 0 ? { borderLeft: '3px solid #f59e0b' } : { borderLeft: '3px solid transparent' }}>
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
+                        style={{ background: route.bad ? '#ef4444' : (i === 0 ? '#f59e0b' : 'var(--color-bg-secondary)'), color: i === 0 && !route.bad ? '#0a0e17' : 'white', border: '1px solid var(--color-border)', flexShrink: 0 }}>
+                        {route.idx}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-sm font-semibold ${route.bad ? 'text-red-400' : ''}`}>{route.stop}</div>
+                        {stop?.detail && <div className="text-[0.65rem] mt-0.5 leading-snug" style={{ color: 'var(--color-text-secondary)' }}>{stop.detail}</div>}
+                      </div>
+                      {stop?.action && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded flex-shrink-0 ${stop.action === 'CONSEGNA' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          {stop.action}
+                        </span>
+                      )}
+                      <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop?.time}</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  );
+                })
+              ) : (
+                // Dopo l'ottimizzazione: elenco ottimizzato
+                optimizedRoute.map((route, i) => {
+                  const stop = milkRunStops.find(s => s.id === route.idx);
+                  return (
+                    <div key={route.idx} className="card flex items-start gap-3 p-3"
+                      style={i === 0 ? { borderLeft: '3px solid #f59e0b' } : { borderLeft: '3px solid transparent' }}>
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
+                        style={{ background: route.changed ? '#00d4aa' : (i === 0 ? '#f59e0b' : 'var(--color-bg-secondary)'), color: '#0a0e17', border: '1px solid var(--color-border)', flexShrink: 0 }}>
+                        {route.idx}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-sm font-semibold ${route.changed ? 'text-[#00d4aa]' : ''}`}>{route.stop}</div>
+                        {stop?.detail && <div className="text-[0.65rem] mt-0.5 leading-snug" style={{ color: 'var(--color-text-secondary)' }}>{stop.detail}</div>}
+                      </div>
+                      {stop?.action && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded flex-shrink-0 ${stop.action === 'CONSEGNA' ? 'bg-green-500/20 text-green-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                          {stop.action}
+                        </span>
+                      )}
+                      <span className="text-sm font-mono flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }}>{stop?.time}</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           {/* RIGHT */}

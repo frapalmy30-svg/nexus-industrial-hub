@@ -586,13 +586,8 @@ export default function DigitalTwin() {
   }, [autoRotate, focusComp]);
 
   useEffect(() => {
-    if (simIntervalRef.current) { clearInterval(simIntervalRef.current); simIntervalRef.current = null; }
-    setFocusComp(-1); setDiagnosed(false); setDiagResults([]); setSimulating(false); setSimulated(false); setSimLines([]); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15);
+    setFocusComp(-1); setDiagnosed(false); setDiagResults([]); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15);
   }, [selected]);
-
-  useEffect(() => {
-    return () => { if (simIntervalRef.current) clearInterval(simIntervalRef.current); };
-  }, []);
 
   const handleMouseDown = useCallback((e) => { setDragging(true); setDragStart({ x: e.clientX, y: e.clientY }); setAutoRotate(false); }, []);
   const handleMouseMove = useCallback((e) => { if (!dragging) return; setRotY(r => r + (e.clientX - dragStart.x) * 0.5); setRotX(r => Math.max(-30, Math.min(45, r + (e.clientY - dragStart.y) * 0.3))); setDragStart({ x: e.clientX, y: e.clientY }); }, [dragging, dragStart]);
