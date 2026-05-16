@@ -598,10 +598,11 @@ export default function DigitalTwin() {
       if (anomalousComps.length > 0) {
         const anomaly = anomalousComps[0];
         const compIdx = selected.components.indexOf(anomaly);
+        const failureProbability = Math.round(100 - anomaly.eff);
         setAlertData({
           percentage: anomaly.eff,
           component: anomaly.name,
-          anomaly: `Rilevata anomalia vibrazione asse X. Probabilità rottura giunto: ${anomaly.eff}% stimata tra 11 giorni. Si consiglia manutenzione preventiva.`,
+          anomaly: `Rilevata anomalia vibrazione asse X. Probabilità rottura giunto: ${failureProbability}% stimata tra 11 giorni. Si consiglia manutenzione preventiva.`,
           anomalyIndex: compIdx
         });
         setPredictiveAlert(true);
@@ -788,19 +789,21 @@ export default function DigitalTwin() {
                 <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
                   <div className="p-4 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(249,115,22,0.08) 100%)', border: '2px solid #f97316', boxShadow: '0 0 20px rgba(249,115,22,0.3)' }}>
                     <div className="flex items-start gap-3">
-                      <div className="text-3xl flex-shrink-0 animate-pulse">🚨</div>
+                      <div className="text-3xl flex-shrink-0 animate-pulse">⚙️</div>
                       <div className="flex-1">
-                        <div className="text-xs font-bold mb-1" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>PREDICTIVE MAINTENANCE ALERT</div>
-                        <div className="text-[0.55rem] font-mono mb-2" style={{ color: '#f97316', lineHeight: '1.5' }}>
-                          <span style={{ fontWeight: 'bold' }}>Status: {alertData.percentage}%</span> • Componente: <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{alertData.component}</span>
+                        <div className="text-xs font-bold mb-3" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: '1.4' }}>
+                          AI PREDICTIVE ALERT - Status: {alertData.percentage}% | {alertData.anomaly}
                         </div>
-                        <div className="text-[0.5rem] mb-3" style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
-                          {alertData.anomaly} Intervento consigliato entro 7 giorni.
+                        <div className="flex gap-2 flex-wrap">
+                          <button className="px-4 py-2 rounded-lg text-[0.6rem] font-bold transition-all flex items-center gap-1"
+                            style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 12px rgba(34,197,94,0.4)' }}>
+                            📦 Ordina Ricambio (Consegna stimata: 2h)
+                          </button>
+                          <button className="px-4 py-2 rounded-lg text-[0.6rem] font-bold transition-all"
+                            style={{ background: 'rgba(107,114,128,0.3)', color: '#d1d5db', border: '1px solid rgba(107,114,128,0.5)', cursor: 'pointer' }}>
+                            🔧 Pianifica Intervento Tecnico
+                          </button>
                         </div>
-                        <button onClick={() => setPredictiveAlert(true)} className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all"
-                          style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 10px rgba(249,115,22,0.5)' }}>
-                          📋 Pianifica Intervento
-                        </button>
                       </div>
                     </div>
                   </div>
