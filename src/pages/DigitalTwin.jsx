@@ -798,30 +798,6 @@ export default function DigitalTwin() {
                   </div>
                 ))}
               </div>
-              {alertData.percentage > 0 && alertData.percentage < 85 && (
-                <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
-                  <div className="p-4 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(249,115,22,0.08) 100%)', border: '2px solid #f97316', boxShadow: '0 0 20px rgba(249,115,22,0.3)' }}>
-                    <div className="flex items-start gap-3">
-                      <div className="text-3xl flex-shrink-0 animate-pulse">⚙️</div>
-                      <div className="flex-1">
-                        <div className="text-xs font-bold mb-3" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: '1.4' }}>
-                          AI PREDICTIVE ALERT - Status: {alertData.percentage}% | {alertData.anomaly}
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                          <button className="px-4 py-2 rounded-lg text-[0.6rem] font-bold transition-all flex items-center gap-1"
-                            style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 12px rgba(34,197,94,0.4)' }}>
-                            📦 Ordina Ricambio (Consegna stimata: 2h)
-                          </button>
-                          <button className="px-4 py-2 rounded-lg text-[0.6rem] font-bold transition-all"
-                            style={{ background: 'rgba(107,114,128,0.3)', color: '#d1d5db', border: '1px solid rgba(107,114,128,0.5)', cursor: 'pointer' }}>
-                            🔧 Pianifica Intervento Tecnico
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </>
           )}
           {(syncing || syncLog.length > 0) && (
@@ -870,6 +846,36 @@ export default function DigitalTwin() {
               {focusComp >= 0 && selected.components[focusComp] && (
                 <div className="absolute bottom-2 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[0.6rem] font-bold pointer-events-none" style={{ background: 'rgba(0,0,0,0.7)', border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', backdropFilter: 'blur(8px)' }}>
                   <Box size={10} /> {selected.components[focusComp].name} — {selected.components[focusComp].value}
+                </div>
+              )}
+
+              {/* Popup Allarme Fluttuante */}
+              {predictiveAlert && alertData.percentage > 0 && alertData.percentage < 85 && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto" style={{ animation: 'scaleIn 0.4s ease-out' }}>
+                  <style>{`@keyframes scaleIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }`}</style>
+                  <div className="p-5 rounded-2xl overflow-hidden max-w-lg" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(249,115,22,0.08) 100%)', border: '2px solid #f97316', boxShadow: '0 0 40px rgba(249,115,22,0.4), inset 0 0 20px rgba(249,115,22,0.1)', backdropFilter: 'blur(12px)' }}>
+                    <div className="flex items-start gap-4">
+                      <div className="text-4xl flex-shrink-0 animate-pulse">⚙️</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-bold mb-3" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: '1.5', fontSize: '0.95rem' }}>
+                          AI PREDICTIVE ALERT - Status: {alertData.percentage}% | {alertData.anomaly}
+                        </div>
+                        <div className="flex gap-2 flex-wrap mt-4">
+                          <button className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 hover:scale-105"
+                            style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 16px rgba(34,197,94,0.5)' }}>
+                            📦 Ordina Ricambio (Consegna stimata: 2h)
+                          </button>
+                          <button className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-gray-700"
+                            style={{ background: 'rgba(107,114,128,0.4)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.6)', cursor: 'pointer' }}>
+                            🔧 Pianifica Intervento Tecnico
+                          </button>
+                        </div>
+                      </div>
+                      <button onClick={() => setPredictiveAlert(false)} className="text-xl font-bold flex-shrink-0 hover:opacity-70 transition-opacity" style={{ color: '#f97316', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        ✕
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
