@@ -573,14 +573,43 @@ export default function DigitalTwin() {
   const [autoRotate, setAutoRotate] = useState(true);
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [synced, setSynced] = useState(false);
+  const [systemStatus, setSystemStatus] = useState('idle'); // idle | analyzing | alert
+  const [predictiveAlert, setPredictiveAlert] = useState(false);
+  const [alertData, setAlertData] = useState({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1 });
+  const [dismissed, setDismissed] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncLog, setSyncLog] = useState([]);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosed, setDiagnosed] = useState(false);
   const [diagResults, setDiagResults] = useState([]);
-  const [syncedData, setSyncedData] = useState(selected);
   const viewportRef = useRef(null);
+
+  // Simulazione automatica: AI predictive analysis in background
+  useEffect(() => {
+    const timer1 = setTimeout(() => {
+      // Dopo 3 secondi: AI rileva anomalia
+      setSystemStatus('analyzing');
+    }, 3000);
+
+    const timer2 = setTimeout(() => {
+      // Dopo altri 1.5 secondi: trigger alert
+      setSystemStatus('alert');
+      const anomalousComps = selected.components.filter(c => c.eff < 85);
+      if (anomalousComps.length > 0) {
+        const anomaly = anomalousComps[0];
+        const compIdx = selected.components.indexOf(anomaly);
+        setAlertData({
+          percentage: anomaly.eff,
+          component: anomaly.name,
+          anomaly: `Rilevata anomalia vibrazione asse X. Probabilità rottura giunto: ${anomaly.eff}% stimata tra 11 giorni. Si consiglia manutenzione preventiva.`,
+          anomalyIndex: compIdx
+        });
+        setPredictiveAlert(true);
+      }
+    }, 4500);
+
+    return () => { clearTimeout(timer1); clearTimeout(timer2); };
+  }, [selected]);
 
   useEffect(() => {
     if (!autoRotate || focusComp >= 0) return;
@@ -589,7 +618,7 @@ export default function DigitalTwin() {
   }, [autoRotate, focusComp]);
 
   useEffect(() => {
-    setFocusComp(-1); setDiagnosed(false); setDiagResults([]); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15); setSynced(false); setSyncing(false); setSyncLog([]); setSyncedData(selected);
+    setFocusComp(-1); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15); setSystemStatus('idle'); setPredictiveAlert(false); setDismissed(false); setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1 });
   }, [selected]);
 
   const handleMouseDown = useCallback((e) => { setDragging(true); setDragStart({ x: e.clientX, y: e.clientY }); setAutoRotate(false); }, []);
@@ -599,13 +628,12 @@ export default function DigitalTwin() {
   const handleSync = () => {
     if (syncing) return;
     setSyncing(true);
-    setSynced(false);
     setSyncLog([]);
+    setPredictiveAlert(false);
 
     const addLog = (msg) => setSyncLog(prev => [...prev, msg]);
-    let delay = 0;
 
-    const steps = [
+    const syncSteps = [
       `> Connessione al server SCADA: ${selected.asset}`,
       `> Caricamento dati di produzione in tempo reale...`,
       `> Lettura sensori OEE — Disponibilità: ${selected.oee.disponibilita}%`,
@@ -613,46 +641,52 @@ export default function DigitalTwin() {
       `> Lettura sensori OEE — Qualità: ${selected.oee.qualita}%`,
       `> Analisi efficienza componenti (${selected.components.length} rilevati)`,
       `> Caricamento dati storici ultimi 24h...`,
-      `> Sincronizzazione completata ✓`,
+      `> Sincronizzazione telemetria IoT completata ✓`,
     ];
 
-    steps.forEach((step, idx) => {
+    let delay = 0;
+    syncSteps.forEach((step) => {
       setTimeout(() => addLog(step), delay);
       delay += 250;
     });
 
     setTimeout(() => {
-      const updatedData = {
-        ...selected,
-        oee: {
-          disponibilita: Math.min(100, Math.max(50, selected.oee.disponibilita + Math.floor(Math.random() * 5) - 2)),
-          performance: Math.min(100, Math.max(50, selected.oee.performance + Math.floor(Math.random() * 5) - 2)),
-          qualita: Math.min(100, Math.max(50, selected.oee.qualita + Math.floor(Math.random() * 5) - 2)),
-          uptime: Math.min(100, Math.max(50, selected.oee.uptime + Math.floor(Math.random() * 5) - 2)),
-          mtbf: Math.min(100, Math.max(50, selected.oee.mtbf + Math.floor(Math.random() * 5) - 2)),
-          mttr: Math.min(100, Math.max(50, selected.oee.mttr + Math.floor(Math.random() * 5) - 2)),
-        },
-        components: selected.components.map(c => ({
-          ...c,
-          eff: Math.max(50, Math.min(100, c.eff + Math.floor(Math.random() * 4) - 2))
-        }))
-      };
-      setSyncedData(updatedData);
       setSyncing(false);
-      setSynced(true);
     }, delay + 300);
   };
 
   const handleDiagnose = () => {
     if (diagnosing) return;
-    setDiagnosing(true); setDiagnosed(false); setDiagResults([]);
-    const results = selected.components.map(c => ({
+    setDiagnosing(true);
+    setDiagnosed(false);
+    setDiagResults([]);
+    setPredictiveAlert(false);
+
+    const results = selected.components.map((c, idx) => ({
       name: c.name,
       status: c.status,
       eff: c.eff,
-      alert: c.eff < 80 ? 'CRITICO' : c.eff < 90 ? 'MONITORARE' : 'OK'
+      alert: c.eff < 80 ? 'CRITICO' : c.eff < 90 ? 'MONITORARE' : 'OK',
+      index: idx
     }));
-    setTimeout(() => { setDiagResults(results); setDiagnosing(false); setDiagnosed(true); }, 2000);
+
+    setTimeout(() => {
+      setDiagResults(results);
+      setDiagnosing(false);
+      setDiagnosed(true);
+
+      // Dopo diagnosi, se c'è un componente critico, prepara l'allarme
+      const anomalousComps = results.filter(c => c.alert === 'CRITICO' || c.eff < 85);
+      if (anomalousComps.length > 0) {
+        const anomaly = anomalousComps[0];
+        setAlertData({
+          percentage: anomaly.eff,
+          component: anomaly.name,
+          anomaly: `Rilevata anomalia. Probabilità rottura: ${anomaly.eff}% stimata tra 11 giorni.`,
+          anomalyIndex: anomaly.index
+        });
+      }
+    }, 2000);
   };
 
   const simLog = [
@@ -716,6 +750,10 @@ export default function DigitalTwin() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[0.55rem] font-mono font-bold" style={{ color: '#00d4aa' }}>ASSET: {selected.asset}</span>
+                <div className="px-2 py-1 rounded text-[0.45rem] font-mono font-bold flex items-center gap-1" style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', color: '#22c55e' }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                  Status: Online | IoT Telemetry: Live (4ms)
+                </div>
               </div>
               <h2 className="text-sm font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>{selected.name}</h2>
               <div className="flex items-center gap-4 text-[0.5rem] font-mono" style={{ color: 'var(--color-text-secondary)' }}>
@@ -728,28 +766,47 @@ export default function DigitalTwin() {
             <div className="w-44 flex-shrink-0">
               <OEERadar data={selected.oee} />
             </div>
-            <div className="flex flex-col gap-2 flex-shrink-0">
-              <button onClick={handleSync} disabled={syncing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.6rem] font-semibold transition-all"
-                style={{ border: '1px solid rgba(0,212,170,0.4)', color: '#00d4aa', background: synced ? 'rgba(0,212,170,0.08)' : 'transparent' }}>
-                {syncing ? <><Loader2 size={11} className="animate-spin" /> Sincronizzando...</> : synced ? <><CheckCircle size={11} /> Sincronizzato</> : <><RefreshCw size={11} /> Sincronizza</>}
-              </button>
-              <span className="text-[0.45rem]" style={{ color: 'var(--color-text-secondary)' }}>Last: {new Date().toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})}</span>
-              <button onClick={handleDiagnose} disabled={diagnosing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.6rem] font-semibold transition-all"
-                style={{ border: `1px solid ${diagnosed ? (faultyCount > 0 ? 'rgba(239,68,68,0.4)' : 'rgba(34,197,94,0.4)') : 'rgba(0,212,170,0.4)'}`, color: diagnosed ? (faultyCount > 0 ? '#ef4444' : '#22c55e') : '#00d4aa', background: diagnosed ? (faultyCount > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)') : 'transparent' }}>
-                {diagnosing ? <><Loader2 size={11} className="animate-spin" /> Diagnosi...</> : diagnosed ? <><CheckCircle size={11} /> {faultyCount > 0 ? `${faultyCount} Allarmi` : 'Diagnosi OK'}</> : <><Activity size={11} /> Diagnosi AI</>}
-              </button>
-            </div>
+            {systemStatus === 'analyzing' && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
+                <Loader2 size={12} className="animate-spin text-blue-400" />
+                <span className="text-[0.55rem] font-mono" style={{ color: '#60a5fa' }}>AI analyzing telemetry...</span>
+              </div>
+            )}
           </div>
           {diagnosed && diagResults.length > 0 && (
-            <div className="mt-2 pt-2 grid grid-cols-3 gap-1" style={{ borderTop: '1px solid var(--color-border)' }}>
-              {diagResults.map((r, i) => (
-                <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded text-[0.5rem]" style={{ background: r.alert === 'CRITICO' ? 'rgba(239,68,68,0.08)' : r.alert === 'MONITORARE' ? 'rgba(245,158,11,0.08)' : 'rgba(34,197,94,0.05)' }}>
-                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: r.alert === 'CRITICO' ? '#ef4444' : r.alert === 'MONITORARE' ? '#f59e0b' : '#22c55e' }} />
-                  <span className="truncate" style={{ color: 'var(--color-text-primary)' }}>{r.name}</span>
-                  <span className="ml-auto font-bold font-mono" style={{ color: r.alert === 'CRITICO' ? '#ef4444' : r.alert === 'MONITORARE' ? '#f59e0b' : '#22c55e' }}>{r.eff}%</span>
+            <>
+              <div className="mt-2 pt-2 grid grid-cols-3 gap-1" style={{ borderTop: '1px solid var(--color-border)' }}>
+                {diagResults.map((r, i) => (
+                  <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded text-[0.5rem]" style={{ background: r.alert === 'CRITICO' ? 'rgba(239,68,68,0.08)' : r.alert === 'MONITORARE' ? 'rgba(245,158,11,0.08)' : 'rgba(34,197,94,0.05)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: r.alert === 'CRITICO' ? '#ef4444' : r.alert === 'MONITORARE' ? '#f59e0b' : '#22c55e' }} />
+                    <span className="truncate" style={{ color: 'var(--color-text-primary)' }}>{r.name}</span>
+                    <span className="ml-auto font-bold font-mono" style={{ color: r.alert === 'CRITICO' ? '#ef4444' : r.alert === 'MONITORARE' ? '#f59e0b' : '#22c55e' }}>{r.eff}%</span>
+                  </div>
+                ))}
+              </div>
+              {alertData.percentage > 0 && alertData.percentage < 85 && (
+                <div className="mt-3 pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                  <div className="p-4 rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(249,115,22,0.08) 100%)', border: '2px solid #f97316', boxShadow: '0 0 20px rgba(249,115,22,0.3)' }}>
+                    <div className="flex items-start gap-3">
+                      <div className="text-3xl flex-shrink-0 animate-pulse">🚨</div>
+                      <div className="flex-1">
+                        <div className="text-xs font-bold mb-1" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>PREDICTIVE MAINTENANCE ALERT</div>
+                        <div className="text-[0.55rem] font-mono mb-2" style={{ color: '#f97316', lineHeight: '1.5' }}>
+                          <span style={{ fontWeight: 'bold' }}>Status: {alertData.percentage}%</span> • Componente: <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{alertData.component}</span>
+                        </div>
+                        <div className="text-[0.5rem] mb-3" style={{ color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                          {alertData.anomaly} Intervento consigliato entro 7 giorni.
+                        </div>
+                        <button onClick={() => setPredictiveAlert(true)} className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all"
+                          style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 10px rgba(249,115,22,0.5)' }}>
+                          📋 Pianifica Intervento
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
           {(syncing || syncLog.length > 0) && (
             <div className="mt-2 pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
@@ -777,6 +834,32 @@ export default function DigitalTwin() {
             <div ref={viewportRef} className="relative" style={{ minHeight: '380px' }}>
               <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio:'16/9', background:'#040d1a', border:'1px solid rgba(0,212,170,0.18)', boxShadow:'0 0 80px rgba(0,212,170,0.07)' }}>
                 <HologramViewer machineId={selected.id} components={selected.components} focusIndex={focusComp} autoRotate={autoRotate} onToggleRotate={() => setAutoRotate(!autoRotate)} style={{ width:'100%', height:'100%' }} />
+                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 338" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <filter id="ng"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="nf"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="ag"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="pulse"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  {predictiveAlert && alertData.anomalyIndex >= 0 && (
+                    <g style={{ cursor: 'pointer' }} onClick={() => setPredictiveAlert(true)}>
+                      {(() => {
+                        const positions = NODE_POSITIONS[selected.id] || selected.components.map((_, i) => [120+(i%3)*160, 120+Math.floor(i/3)*100]);
+                        const [cx, cy] = positions[alertData.anomalyIndex] || [150, 150];
+                        return (
+                          <>
+                            <circle cx={cx} cy={cy} r="25" fill="rgba(239,68,68,0.15)" stroke="#ef4444" strokeWidth="2.5" filter="url(#pulse)" opacity="0.9">
+                              <animate attributeName="r" values="25;35;25" dur="1.2s" repeatCount="indefinite"/>
+                              <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.2s" repeatCount="indefinite"/>
+                            </circle>
+                            <circle cx={cx} cy={cy} r="12" fill="#ef4444" opacity="0.8"/>
+                            <text x={cx} y={cy+4} fill="#fff" fontSize="8" fontFamily="monospace" textAnchor="middle" fontWeight="bold">!</text>
+                          </>
+                        );
+                      })()}
+                    </g>
+                  )}
+                </svg>
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 338" preserveAspectRatio="xMidYMid meet">
                   <defs>
                     <filter id="ng"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
