@@ -320,6 +320,31 @@ export default function HologramViewer({ machineId, style, highlights = [], auto
           {projected.map((p, i) => {
             if (!p.visible) return null;
             const c = p.color || '#22c55e';
+            const isAlert = p.type === 'alert';
+
+            if (isAlert) {
+              // Stile alert: pallino rosso/ambra che pulsa fortemente
+              return (
+                <g key={p.id ?? i}>
+                  {/* Alone esterno ambra pulsante */}
+                  <circle cx={p.sx} cy={p.sy} r="2.5" fill="none" stroke="#f97316" strokeWidth="0.8" opacity="0.5" filter="url(#hgGlow)">
+                    <animate attributeName="r" values="2.5;4;2.5" dur="1.2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.9;0.2;0.9" dur="1.2s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={p.sx} cy={p.sy} r="1.8" fill="none" stroke="#ef4444" strokeWidth="0.6" opacity="0.7" filter="url(#hgGlow)">
+                    <animate attributeName="r" values="1.8;3;1.8" dur="1.2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.2s" repeatCount="indefinite" />
+                  </circle>
+                  {/* Dot centrale rosso brillante */}
+                  <circle cx={p.sx} cy={p.sy} r="1.2" fill="#ef4444" opacity="0.95" filter="url(#hgGlow)">
+                    <animate attributeName="r" values="1.2;1.5;1.2" dur="1.2s" repeatCount="indefinite" />
+                  </circle>
+                  {/* Punto piccolo al centro */}
+                  <circle cx={p.sx} cy={p.sy} r="0.6" fill="#fff" opacity="0.9" />
+                </g>
+              );
+            }
+
             const baseDist = Math.max(1, 5 - p.depth * 2);
             const r = Math.min(2.8, 1.2 + baseDist * 0.35);
 

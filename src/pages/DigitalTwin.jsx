@@ -860,8 +860,8 @@ export default function DigitalTwin() {
                     nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
                     ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
                     nz: ANOMALY_HIGHLIGHTS[selected.id].nz,
-                    color: '#ef4444',
-                    label: alertData.component
+                    type: 'alert',
+                    color: '#ef4444'
                   }] : []}
                   style={{ width:'100%', height:'100%' }}
                 />
