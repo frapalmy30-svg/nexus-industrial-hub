@@ -595,6 +595,7 @@ export default function DigitalTwin() {
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagnosed, setDiagnosed] = useState(false);
   const [diagResults, setDiagResults] = useState([]);
+  const [actionTaken, setActionTaken] = useState(null); // 'order' | 'schedule' | null
   const viewportRef = useRef(null);
 
   // Simulazione automatica: AI predictive analysis in background
@@ -638,6 +639,24 @@ export default function DigitalTwin() {
   const handleMouseDown = useCallback((e) => { setDragging(true); setDragStart({ x: e.clientX, y: e.clientY }); setAutoRotate(false); }, []);
   const handleMouseMove = useCallback((e) => { if (!dragging) return; setRotY(r => r + (e.clientX - dragStart.x) * 0.5); setRotX(r => Math.max(-30, Math.min(45, r + (e.clientY - dragStart.y) * 0.3))); setDragStart({ x: e.clientX, y: e.clientY }); }, [dragging, dragStart]);
   const handleMouseUp = useCallback(() => setDragging(false), []);
+
+  const handleOrderPart = () => {
+    setActionTaken('order');
+    setTimeout(() => {
+      alert(`✓ ORDINE CONFERMATO\n\nComponente: ${alertData.component}\nTipo: Ricambio Urgente\nConsegna stimata: 2 ore\nTracking: RM-${Date.now().toString().slice(-6)}\n\nL'ordine è stato inoltrato al fornitore.`);
+      setActionTaken(null);
+      setPredictiveAlert(false);
+    }, 800);
+  };
+
+  const handleScheduleMaintenance = () => {
+    setActionTaken('schedule');
+    setTimeout(() => {
+      alert(`✓ INTERVENTO PROGRAMMATO\n\nComponente: ${alertData.component}\nData suggerita: ${new Date(Date.now() + 2*24*60*60*1000).toLocaleDateString('it-IT')}\nTecnico: Assegnazione automatica in corso...\nProblematica: Anomalia vibrazione asse X\n\nL'intervento è stato programmato nel sistema.`);
+      setActionTaken(null);
+      setPredictiveAlert(false);
+    }, 800);
+  };
 
   const handleSync = () => {
     if (syncing) return;
@@ -861,13 +880,19 @@ export default function DigitalTwin() {
                           AI PREDICTIVE ALERT - Status: {alertData.percentage}% | {alertData.anomaly}
                         </div>
                         <div className="flex gap-2 flex-wrap mt-4">
-                          <button className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 hover:scale-105"
-                            style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 0 16px rgba(34,197,94,0.5)' }}>
-                            📦 Ordina Ricambio (Consegna stimata: 2h)
+                          <button
+                            onClick={handleOrderPart}
+                            disabled={actionTaken !== null}
+                            className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+                            style={{ background: actionTaken === 'order' ? 'rgba(34,197,94,0.6)' : 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: actionTaken ? 'not-allowed' : 'pointer', boxShadow: '0 0 16px rgba(34,197,94,0.5)' }}>
+                            {actionTaken === 'order' ? '⏳ Elaborazione...' : '📦 Ordina Ricambio (Consegna stimata: 2h)'}
                           </button>
-                          <button className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-gray-700"
-                            style={{ background: 'rgba(107,114,128,0.4)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.6)', cursor: 'pointer' }}>
-                            🔧 Pianifica Intervento Tecnico
+                          <button
+                            onClick={handleScheduleMaintenance}
+                            disabled={actionTaken !== null}
+                            className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-gray-700 disabled:opacity-70 disabled:cursor-not-allowed"
+                            style={{ background: actionTaken === 'schedule' ? 'rgba(107,114,128,0.6)' : 'rgba(107,114,128,0.4)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.6)', cursor: actionTaken ? 'not-allowed' : 'pointer' }}>
+                            {actionTaken === 'schedule' ? '⏳ Programmazione...' : '🔧 Pianifica Intervento Tecnico'}
                           </button>
                         </div>
                       </div>
