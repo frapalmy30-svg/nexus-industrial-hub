@@ -132,6 +132,19 @@ const NODE_POSITIONS = {
   simulazione: [[450,170],[450,170],[450,170],[450,170],[450,170]],
 };
 
+// Highlights 3D per anomalie: coordinate normalizzate (nx, ny, nz) in [0..1]
+// Per ogni macchinario, specifica la posizione 3D del componente problematico
+const ANOMALY_HIGHLIGHTS = {
+  adas:        { nx: 0.5, ny: 0.4, nz: 0.6 }, // Radar LRR (indice 1)
+  sospensioni: { nx: 0.6, ny: 0.5, nz: 0.5 }, // Allineamento laser braccio (indice 2)
+  avvitatura:  null, // nessuna anomalia
+  maschera:    null,
+  calibri:     null,
+  sigle:       { nx: 0.4, ny: 0.3, nz: 0.7 }, // Attuatore lineare (indice 2)
+  montaggio:   null,
+  simulazione: null,
+};
+
 function OEERadar({ data }) {
   const labels = ['Disponibilità', 'Performance', 'Qualità', 'Uptime', 'MTBF', 'MTTR'];
   const keys = ['disponibilita', 'performance', 'qualita', 'uptime', 'mtbf', 'mttr'];
@@ -836,46 +849,22 @@ export default function DigitalTwin() {
 
             <div ref={viewportRef} className="relative" style={{ minHeight: '380px' }}>
               <div className="relative w-full rounded-xl overflow-hidden" style={{ aspectRatio:'16/9', background:'#040d1a', border:'1px solid rgba(0,212,170,0.18)', boxShadow:'0 0 80px rgba(0,212,170,0.07)' }}>
-                <HologramViewer machineId={selected.id} components={selected.components} focusIndex={focusComp} autoRotate={autoRotate} onToggleRotate={() => setAutoRotate(!autoRotate)} style={{ width:'100%', height:'100%' }} />
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 338" preserveAspectRatio="xMidYMid meet">
-                  <defs>
-                    <filter id="ng"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="nf"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="ag"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="pulse"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                  </defs>
-                  {predictiveAlert && alertData.anomalyIndex >= 0 && (
-                    <g style={{ cursor: 'pointer' }} onClick={() => setPredictiveAlert(true)}>
-                      {(() => {
-                        const positions = NODE_POSITIONS[selected.id] || selected.components.map((_, i) => [120+(i%3)*160, 120+Math.floor(i/3)*100]);
-                        const [cx, cy] = positions[alertData.anomalyIndex] || [150, 150];
-                        return (
-                          <>
-                            <circle cx={cx} cy={cy} r="25" fill="rgba(239,68,68,0.15)" stroke="#ef4444" strokeWidth="2.5" filter="url(#pulse)" opacity="0.9">
-                              <animate attributeName="r" values="25;35;25" dur="1.2s" repeatCount="indefinite"/>
-                              <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.2s" repeatCount="indefinite"/>
-                            </circle>
-                            <circle cx={cx} cy={cy} r="12" fill="#ef4444" opacity="0.8"/>
-                            <text x={cx} y={cy+4} fill="#fff" fontSize="8" fontFamily="monospace" textAnchor="middle" fontWeight="bold">!</text>
-                          </>
-                        );
-                      })()}
-                    </g>
-                  )}
-                </svg>
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 338" preserveAspectRatio="xMidYMid meet">
-                  <defs>
-                    <filter id="ng"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="nf"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="ag"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                  </defs>
-                  <path d="M8,8 L8,22 M8,8 L22,8" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <path d="M592,8 L592,22 M592,8 L578,8" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <path d="M8,330 L8,316 M8,330 L22,330" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <path d="M592,330 L592,316 M592,330 L578,330" stroke="#00d4aa" strokeWidth="1.5" opacity="0.5"/>
-                  <text x="592" y="18" fill="#00d4aa" fontSize="5.5" fontFamily="monospace" textAnchor="end" opacity="0.4">⟳ ORBIT · SCROLL ZOOM</text>
-                  <text x="300" y="332" fill="#00d4aa" fontSize="6" fontFamily="monospace" textAnchor="middle" opacity="0.28">{selected.catia}</text>
-                </svg>
+                <HologramViewer
+                  machineId={selected.id}
+                  components={selected.components}
+                  focusIndex={focusComp}
+                  autoRotate={autoRotate}
+                  onToggleRotate={() => setAutoRotate(!autoRotate)}
+                  highlights={predictiveAlert && alertData.anomalyIndex >= 0 && ANOMALY_HIGHLIGHTS[selected.id] ? [{
+                    id: 'anomaly',
+                    nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
+                    ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
+                    nz: ANOMALY_HIGHLIGHTS[selected.id].nz,
+                    color: '#ef4444',
+                    label: alertData.component
+                  }] : []}
+                  style={{ width:'100%', height:'100%' }}
+                />
                 {focusComp>=0&&<div className="absolute inset-0 rounded-xl pointer-events-none" style={{border:'2px solid rgba(0,212,170,0.55)',boxShadow:'inset 0 0 28px rgba(0,212,170,0.12)'}}/>}
               </div>
               {focusComp >= 0 && selected.components[focusComp] && (
