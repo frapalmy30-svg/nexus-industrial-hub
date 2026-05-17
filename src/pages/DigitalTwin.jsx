@@ -134,17 +134,6 @@ const NODE_POSITIONS = {
 
 // Highlights 3D per anomalie: coordinate normalizzate (nx, ny, nz) in [0..1]
 // Per ogni macchinario, specifica la posizione 3D del componente problematico
-const ANOMALY_HIGHLIGHTS = {
-  adas:        { nx: 0.5, ny: 0.4, nz: 0.6 }, // Radar LRR (indice 1)
-  sospensioni: { nx: 0.6, ny: 0.5, nz: 0.5 }, // Allineamento laser braccio (indice 2)
-  avvitatura:  null,
-  calibri:     null,
-  sigle:       { nx: 0.4, ny: 0.3, nz: 0.7 }, // Attuatore lineare (indice 2)
-  montaggio:   null,
-  simulazione: null,
-  maschera:    { nx: 0.55, ny: 0.45, nz: 0.5 }, // Punte Cu-Cr elettrodi (indice 2)
-};
-
 // Descrizioni specifiche per ogni componente problematico
 const ANOMALY_DESCRIPTIONS = {
   'Radar LRR 77 GHz': {
@@ -153,6 +142,7 @@ const ANOMALY_DESCRIPTIONS = {
     primaryAction: 'Ordina Ricambio',
     primaryDesc: 'Consegna stimata: 2h',
     secondaryAction: 'Ricalibrazione Urgente',
+    nx: 0.5, ny: 0.4, nz: 0.6,
   },
   'Allineamento laser braccio': {
     issue: 'Rilevata anomalia allineamento braccio laser. Probabilità danneggiamento modulo laser',
@@ -160,6 +150,7 @@ const ANOMALY_DESCRIPTIONS = {
     primaryAction: 'Ricalibrazione Immediata',
     primaryDesc: 'Tempo intervento: 30min',
     secondaryAction: 'Ordina Modulo Laser',
+    nx: 0.6, ny: 0.5, nz: 0.5,
   },
   'Attuatore lineare': {
     issue: 'Rilevata anomalia usura componente meccanico. Probabilità rottura cuscinetto lineare',
@@ -167,6 +158,7 @@ const ANOMALY_DESCRIPTIONS = {
     primaryAction: 'Ordina Ricambio',
     primaryDesc: 'Consegna stimata: 2h',
     secondaryAction: 'Pianifica Intervento Tecnico',
+    nx: 0.4, ny: 0.3, nz: 0.7,
   },
   'Punte Cu-Cr elettrodi': {
     issue: 'Rilevata anomalia usura critica degli elettrodi di saldatura. Probabilità difetti saldatura',
@@ -174,6 +166,7 @@ const ANOMALY_DESCRIPTIONS = {
     primaryAction: 'Ordina Ricambio Urgente',
     primaryDesc: 'Consegna stimata: 4h',
     secondaryAction: 'Pianifica Intervento Tecnico',
+    nx: 0.55, ny: 0.45, nz: 0.5,
   },
   'Contacicli saldatura': {
     issue: 'Rilevata anomalia contatore cicli saldatura. Probabilità errore cicli',
@@ -181,6 +174,7 @@ const ANOMALY_DESCRIPTIONS = {
     primaryAction: 'Ordina Ricambio',
     primaryDesc: 'Consegna stimata: 1h',
     secondaryAction: 'Ricalibrazione Immediata',
+    nx: 0.5, ny: 0.4, nz: 0.6,
   },
 };
 
@@ -640,9 +634,8 @@ export default function DigitalTwin() {
   // Simulazione automatica: AI predictive analysis in background
   useEffect(() => {
     // Controlla se ci sono componenti con status ATTENZIONE o CRITICO
-    const hasProblematicComponents = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
-
-    console.log(`[DigitalTwin] Product changed: ${selected.id}, hasProblematicComponents: ${hasProblematicComponents}`);
+    const anomalousComps = selected.components.filter(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
+    const hasProblematicComponents = anomalousComps.length > 0;
 
     // Resetta sempre quando cambia il prodotto
     setSystemStatus('idle');
@@ -651,23 +644,15 @@ export default function DigitalTwin() {
     setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' });
 
     if (!hasProblematicComponents) {
-      // Nessun problema, esci
-      console.log(`[DigitalTwin] No problematic components, returning early`);
       return;
     }
 
     const timer1 = setTimeout(() => {
-      // Dopo 3 secondi: AI rileva anomalia
-      console.log(`[DigitalTwin] Setting systemStatus to analyzing`);
       setSystemStatus('analyzing');
     }, 3000);
 
     const timer2 = setTimeout(() => {
-      // Dopo altri 1.5 secondi: trigger alert
-      console.log(`[DigitalTwin] Setting systemStatus to alert`);
       setSystemStatus('alert');
-      const anomalousComps = selected.components.filter(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
-      console.log(`[DigitalTwin] Anomalous components:`, anomalousComps);
       if (anomalousComps.length > 0) {
         const anomaly = anomalousComps[0];
         const compIdx = selected.components.indexOf(anomaly);
@@ -679,7 +664,6 @@ export default function DigitalTwin() {
           primaryDesc: 'Consegna stimata: 2h',
           secondaryAction: 'Pianifica Intervento Tecnico',
         };
-        console.log(`[DigitalTwin] Setting alert data for component:`, anomaly.name);
         setAlertData({
           percentage: anomaly.eff,
           component: anomaly.name,
@@ -931,17 +915,21 @@ export default function DigitalTwin() {
                   autoRotate={autoRotate}
                   onToggleRotate={() => setAutoRotate(!autoRotate)}
                   highlights={(() => {
-                    const hasProblematicComps = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
-                    const componentExists = selected.components.some(c => c.name === alertData.component);
-                    const shouldShowAlert = systemStatus === 'alert' && alertData.anomalyIndex >= 0 && alertData.component && componentExists && ANOMALY_HIGHLIGHTS[selected.id] && hasProblematicComps;
-                    return shouldShowAlert ? [{
+                    if (systemStatus !== 'alert' || alertData.anomalyIndex < 0 || !alertData.component) {
+                      return [];
+                    }
+                    const desc = ANOMALY_DESCRIPTIONS[alertData.component];
+                    if (!desc || !desc.nx) {
+                      return [];
+                    }
+                    return [{
                       id: 'anomaly',
-                      nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
-                      ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
-                      nz: ANOMALY_HIGHLIGHTS[selected.id].nz,
+                      nx: desc.nx,
+                      ny: desc.ny,
+                      nz: desc.nz,
                       type: 'alert',
                       color: '#ef4444'
-                    }] : [];
+                    }];
                   })()}
                   style={{ width:'100%', height:'100%' }}
                 />
