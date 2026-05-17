@@ -138,11 +138,11 @@ const ANOMALY_HIGHLIGHTS = {
   adas:        { nx: 0.5, ny: 0.4, nz: 0.6 }, // Radar LRR (indice 1)
   sospensioni: { nx: 0.6, ny: 0.5, nz: 0.5 }, // Allineamento laser braccio (indice 2)
   avvitatura:  null,
-  maschera:    null,
   calibri:     null,
   sigle:       { nx: 0.4, ny: 0.3, nz: 0.7 }, // Attuatore lineare (indice 2)
   montaggio:   null,
   simulazione: null,
+  maschera:    { nx: 0.55, ny: 0.45, nz: 0.5 }, // Punte Cu-Cr elettrodi (indice 2)
 };
 
 // Descrizioni specifiche per ogni componente problematico
@@ -167,6 +167,20 @@ const ANOMALY_DESCRIPTIONS = {
     primaryAction: 'Ordina Ricambio',
     primaryDesc: 'Consegna stimata: 2h',
     secondaryAction: 'Pianifica Intervento Tecnico',
+  },
+  'Punte Cu-Cr elettrodi': {
+    issue: 'Rilevata anomalia usura critica degli elettrodi di saldatura. Probabilità difetti saldatura',
+    failureDays: 5,
+    primaryAction: 'Ordina Ricambio Urgente',
+    primaryDesc: 'Consegna stimata: 4h',
+    secondaryAction: 'Pianifica Intervento Tecnico',
+  },
+  'Contacicli saldatura': {
+    issue: 'Rilevata anomalia contatore cicli saldatura. Probabilità errore cicli',
+    failureDays: 9,
+    primaryAction: 'Ordina Ricambio',
+    primaryDesc: 'Consegna stimata: 1h',
+    secondaryAction: 'Ricalibrazione Immediata',
   },
 };
 
