@@ -679,7 +679,7 @@ export default function DigitalTwin() {
   }, [autoRotate, focusComp]);
 
   useEffect(() => {
-    setFocusComp(-1); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15); setSystemStatus('idle'); setPredictiveAlert(false); setDismissed(false); setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1 });
+    setFocusComp(-1); setAutoRotate(true); setZoom(1); setRotY(0); setRotX(15); setSystemStatus('idle'); setPredictiveAlert(false); setDismissed(false); setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' }); setActionTaken(null);
   }, [selected]);
 
   const handleMouseDown = useCallback((e) => { setDragging(true); setDragStart({ x: e.clientX, y: e.clientY }); setAutoRotate(false); }, []);
