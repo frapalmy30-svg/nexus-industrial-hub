@@ -906,7 +906,7 @@ export default function DigitalTwin() {
                   focusIndex={focusComp}
                   autoRotate={autoRotate}
                   onToggleRotate={() => setAutoRotate(!autoRotate)}
-                  highlights={(systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && ANOMALY_HIGHLIGHTS[selected.id] ? [{
+                  highlights={(systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && ANOMALY_HIGHLIGHTS[selected.id] && selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO') ? [{
                     id: 'anomaly',
                     nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
                     ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
