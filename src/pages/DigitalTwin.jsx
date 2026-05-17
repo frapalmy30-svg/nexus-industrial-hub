@@ -642,6 +642,8 @@ export default function DigitalTwin() {
     // Controlla se ci sono componenti con status ATTENZIONE o CRITICO
     const hasProblematicComponents = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
 
+    console.log(`[DigitalTwin] Product changed: ${selected.id}, hasProblematicComponents: ${hasProblematicComponents}`);
+
     // Resetta sempre quando cambia il prodotto
     setSystemStatus('idle');
     setPredictiveAlert(false);
@@ -650,18 +652,22 @@ export default function DigitalTwin() {
 
     if (!hasProblematicComponents) {
       // Nessun problema, esci
+      console.log(`[DigitalTwin] No problematic components, returning early`);
       return;
     }
 
     const timer1 = setTimeout(() => {
       // Dopo 3 secondi: AI rileva anomalia
+      console.log(`[DigitalTwin] Setting systemStatus to analyzing`);
       setSystemStatus('analyzing');
     }, 3000);
 
     const timer2 = setTimeout(() => {
       // Dopo altri 1.5 secondi: trigger alert
+      console.log(`[DigitalTwin] Setting systemStatus to alert`);
       setSystemStatus('alert');
       const anomalousComps = selected.components.filter(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
+      console.log(`[DigitalTwin] Anomalous components:`, anomalousComps);
       if (anomalousComps.length > 0) {
         const anomaly = anomalousComps[0];
         const compIdx = selected.components.indexOf(anomaly);
@@ -673,6 +679,7 @@ export default function DigitalTwin() {
           primaryDesc: 'Consegna stimata: 2h',
           secondaryAction: 'Pianifica Intervento Tecnico',
         };
+        console.log(`[DigitalTwin] Setting alert data for component:`, anomaly.name);
         setAlertData({
           percentage: anomaly.eff,
           component: anomaly.name,
