@@ -909,14 +909,19 @@ export default function DigitalTwin() {
                   focusIndex={focusComp}
                   autoRotate={autoRotate}
                   onToggleRotate={() => setAutoRotate(!autoRotate)}
-                  highlights={systemStatus !== 'idle' && (systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && alertData.component && ANOMALY_HIGHLIGHTS[selected.id] && selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO') ? [{
-                    id: 'anomaly',
-                    nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
-                    ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
-                    nz: ANOMALY_HIGHLIGHTS[selected.id].nz,
-                    type: 'alert',
-                    color: '#ef4444'
-                  }] : []}
+                  highlights={(() => {
+                    const hasProblematicComps = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
+                    const componentExists = selected.components.some(c => c.name === alertData.component);
+                    const shouldShowAlert = systemStatus !== 'idle' && (systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && alertData.component && componentExists && ANOMALY_HIGHLIGHTS[selected.id] && hasProblematicComps;
+                    return shouldShowAlert ? [{
+                      id: 'anomaly',
+                      nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
+                      ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
+                      nz: ANOMALY_HIGHLIGHTS[selected.id].nz,
+                      type: 'alert',
+                      color: '#ef4444'
+                    }] : [];
+                  })()}
                   style={{ width:'100%', height:'100%' }}
                 />
                 {focusComp>=0&&<div className="absolute inset-0 rounded-xl pointer-events-none" style={{border:'2px solid rgba(0,212,170,0.55)',boxShadow:'inset 0 0 28px rgba(0,212,170,0.12)'}}/>}
