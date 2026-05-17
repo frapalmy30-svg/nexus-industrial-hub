@@ -943,7 +943,7 @@ export default function DigitalTwin() {
 
               {/* Popup Allarme Fluttuante */}
               {predictiveAlert && alertData.percentage > 0 && alertData.percentage < 85 && (
-                <div className="fixed bottom-6 right-6 z-50 pointer-events-auto" style={{ width: '340px', animation: 'slideInRight 0.4s ease-out' }}>
+                <div className="absolute top-6 right-6 z-50 pointer-events-auto" style={{ width: '340px', animation: 'slideInRight 0.4s ease-out' }}>
                   <style>{`@keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }`}</style>
                   <div className="p-4 rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(15,20,35,0.97) 0%, rgba(30,15,15,0.97) 100%)', border: '2px solid #f97316', boxShadow: '0 0 40px rgba(249,115,22,0.35), inset 0 0 20px rgba(249,115,22,0.06)', backdropFilter: 'blur(16px)' }}>
                     <div className="flex items-start gap-3">
