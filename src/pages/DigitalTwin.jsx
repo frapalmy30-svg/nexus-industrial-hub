@@ -912,7 +912,7 @@ export default function DigitalTwin() {
                   highlights={(() => {
                     const hasProblematicComps = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
                     const componentExists = selected.components.some(c => c.name === alertData.component);
-                    const shouldShowAlert = systemStatus !== 'idle' && (systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && alertData.component && componentExists && ANOMALY_HIGHLIGHTS[selected.id] && hasProblematicComps;
+                    const shouldShowAlert = systemStatus === 'alert' && alertData.anomalyIndex >= 0 && alertData.component && componentExists && ANOMALY_HIGHLIGHTS[selected.id] && hasProblematicComps;
                     return shouldShowAlert ? [{
                       id: 'anomaly',
                       nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
