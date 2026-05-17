@@ -631,8 +631,8 @@ export default function DigitalTwin() {
     // Resetta sempre quando cambia il prodotto
     setSystemStatus('idle');
     setPredictiveAlert(false);
-    setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' });
     setActionTaken(null);
+    setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' });
 
     if (!hasProblematicComponents) {
       // Nessun problema, esci
@@ -909,7 +909,7 @@ export default function DigitalTwin() {
                   focusIndex={focusComp}
                   autoRotate={autoRotate}
                   onToggleRotate={() => setAutoRotate(!autoRotate)}
-                  highlights={(systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && ANOMALY_HIGHLIGHTS[selected.id] && selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO') ? [{
+                  highlights={systemStatus !== 'idle' && (systemStatus === 'analyzing' || systemStatus === 'alert') && alertData.anomalyIndex >= 0 && alertData.component && ANOMALY_HIGHLIGHTS[selected.id] && selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO') ? [{
                     id: 'anomaly',
                     nx: ANOMALY_HIGHLIGHTS[selected.id].nx,
                     ny: ANOMALY_HIGHLIGHTS[selected.id].ny,
