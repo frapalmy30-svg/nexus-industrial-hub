@@ -628,11 +628,14 @@ export default function DigitalTwin() {
     // Controlla se ci sono componenti con status ATTENZIONE o CRITICO
     const hasProblematicComponents = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
 
+    // Resetta sempre quando cambia il prodotto
+    setSystemStatus('idle');
+    setPredictiveAlert(false);
+    setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' });
+    setActionTaken(null);
+
     if (!hasProblematicComponents) {
-      // Nessun problema, resetta lo stato
-      setSystemStatus('idle');
-      setPredictiveAlert(false);
-      setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' });
+      // Nessun problema, esci
       return;
     }
 
