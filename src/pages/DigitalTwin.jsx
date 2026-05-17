@@ -625,6 +625,17 @@ export default function DigitalTwin() {
 
   // Simulazione automatica: AI predictive analysis in background
   useEffect(() => {
+    // Controlla se ci sono componenti con status ATTENZIONE o CRITICO
+    const hasProblematicComponents = selected.components.some(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
+
+    if (!hasProblematicComponents) {
+      // Nessun problema, resetta lo stato
+      setSystemStatus('idle');
+      setPredictiveAlert(false);
+      setAlertData({ percentage: 0, component: '', anomaly: '', anomalyIndex: -1, primaryAction: '', primaryDesc: '', secondaryAction: '' });
+      return;
+    }
+
     const timer1 = setTimeout(() => {
       // Dopo 3 secondi: AI rileva anomalia
       setSystemStatus('analyzing');
@@ -633,7 +644,7 @@ export default function DigitalTwin() {
     const timer2 = setTimeout(() => {
       // Dopo altri 1.5 secondi: trigger alert
       setSystemStatus('alert');
-      const anomalousComps = selected.components.filter(c => c.eff < 85);
+      const anomalousComps = selected.components.filter(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO' || c.eff < 85);
       if (anomalousComps.length > 0) {
         const anomaly = anomalousComps[0];
         const compIdx = selected.components.indexOf(anomaly);
