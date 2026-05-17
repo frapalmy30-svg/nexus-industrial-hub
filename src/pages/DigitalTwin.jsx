@@ -137,12 +137,37 @@ const NODE_POSITIONS = {
 const ANOMALY_HIGHLIGHTS = {
   adas:        { nx: 0.5, ny: 0.4, nz: 0.6 }, // Radar LRR (indice 1)
   sospensioni: { nx: 0.6, ny: 0.5, nz: 0.5 }, // Allineamento laser braccio (indice 2)
-  avvitatura:  null, // nessuna anomalia
+  avvitatura:  null,
   maschera:    null,
   calibri:     null,
   sigle:       { nx: 0.4, ny: 0.3, nz: 0.7 }, // Attuatore lineare (indice 2)
   montaggio:   null,
   simulazione: null,
+};
+
+// Descrizioni specifiche per ogni componente problematico
+const ANOMALY_DESCRIPTIONS = {
+  'Radar LRR 77 GHz': {
+    issue: 'Rilevata anomalia allineamento sensore. Probabilità perdita calibrazione',
+    failureDays: 11,
+    primaryAction: 'Ordina Ricambio',
+    primaryDesc: 'Consegna stimata: 2h',
+    secondaryAction: 'Ricalibrazione Urgente',
+  },
+  'Allineamento laser braccio': {
+    issue: 'Rilevata anomalia allineamento braccio laser. Probabilità danneggiamento modulo laser',
+    failureDays: 11,
+    primaryAction: 'Ricalibrazione Immediata',
+    primaryDesc: 'Tempo intervento: 30min',
+    secondaryAction: 'Ordina Modulo Laser',
+  },
+  'Attuatore lineare': {
+    issue: 'Rilevata anomalia usura componente meccanico. Probabilità rottura cuscinetto lineare',
+    failureDays: 11,
+    primaryAction: 'Ordina Ricambio',
+    primaryDesc: 'Consegna stimata: 2h',
+    secondaryAction: 'Pianifica Intervento Tecnico',
+  },
 };
 
 function OEERadar({ data }) {
@@ -613,11 +638,21 @@ export default function DigitalTwin() {
         const anomaly = anomalousComps[0];
         const compIdx = selected.components.indexOf(anomaly);
         const failureProbability = Math.round(100 - anomaly.eff);
+        const desc = ANOMALY_DESCRIPTIONS[anomaly.name] || {
+          issue: `Rilevata anomalia generica. Probabilità guasto critico`,
+          failureDays: 11,
+          primaryAction: 'Ordina Ricambio',
+          primaryDesc: 'Consegna stimata: 2h',
+          secondaryAction: 'Pianifica Intervento Tecnico',
+        };
         setAlertData({
           percentage: anomaly.eff,
           component: anomaly.name,
-          anomaly: `Rilevata anomalia vibrazione asse X. Probabilità rottura giunto: ${failureProbability}% stimata tra 11 giorni. Si consiglia manutenzione preventiva.`,
-          anomalyIndex: compIdx
+          anomaly: `${desc.issue}: ${failureProbability}% stimata tra ${desc.failureDays} giorni. Si consiglia manutenzione preventiva.`,
+          anomalyIndex: compIdx,
+          primaryAction: desc.primaryAction,
+          primaryDesc: desc.primaryDesc,
+          secondaryAction: desc.secondaryAction,
         });
         setPredictiveAlert(true);
       }
@@ -640,19 +675,29 @@ export default function DigitalTwin() {
   const handleMouseMove = useCallback((e) => { if (!dragging) return; setRotY(r => r + (e.clientX - dragStart.x) * 0.5); setRotX(r => Math.max(-30, Math.min(45, r + (e.clientY - dragStart.y) * 0.3))); setDragStart({ x: e.clientX, y: e.clientY }); }, [dragging, dragStart]);
   const handleMouseUp = useCallback(() => setDragging(false), []);
 
-  const handleOrderPart = () => {
-    setActionTaken('order');
+  const handlePrimaryAction = () => {
+    setActionTaken('primary');
     setTimeout(() => {
-      alert(`✓ ORDINE CONFERMATO\n\nComponente: ${alertData.component}\nTipo: Ricambio Urgente\nConsegna stimata: 2 ore\nTracking: RM-${Date.now().toString().slice(-6)}\n\nL'ordine è stato inoltrato al fornitore.`);
+      const isPrimaryOrder = alertData.primaryAction?.includes('Ordina') || alertData.primaryAction?.includes('Ricambio');
+      if (isPrimaryOrder) {
+        alert(`✓ ORDINE CONFERMATO\n\nComponente: ${alertData.component}\nTipo: Ricambio Urgente\nConsegna stimata: ${alertData.primaryDesc?.split(': ')[1] || '2 ore'}\nTracking: RM-${Date.now().toString().slice(-6)}\n\nL'ordine è stato inoltrato al fornitore.`);
+      } else {
+        alert(`✓ ${alertData.primaryAction?.toUpperCase()}\n\nComponente: ${alertData.component}\n${alertData.primaryDesc}\n\nIntervento programmato nel sistema.`);
+      }
       setActionTaken(null);
       setPredictiveAlert(false);
     }, 800);
   };
 
-  const handleScheduleMaintenance = () => {
-    setActionTaken('schedule');
+  const handleSecondaryAction = () => {
+    setActionTaken('secondary');
     setTimeout(() => {
-      alert(`✓ INTERVENTO PROGRAMMATO\n\nComponente: ${alertData.component}\nData suggerita: ${new Date(Date.now() + 2*24*60*60*1000).toLocaleDateString('it-IT')}\nTecnico: Assegnazione automatica in corso...\nProblematica: Anomalia vibrazione asse X\n\nL'intervento è stato programmato nel sistema.`);
+      const isSecondaryOrder = alertData.secondaryAction?.includes('Ordina') || alertData.secondaryAction?.includes('Ricambio');
+      if (isSecondaryOrder) {
+        alert(`✓ ORDINE CONFERMATO\n\nComponente: ${alertData.component}\nTipo: Ricambio\nTracking: RM-${Date.now().toString().slice(-6)}\n\nL'ordine è stato inoltrato al fornitore.`);
+      } else {
+        alert(`✓ INTERVENTO PROGRAMMATO\n\nComponente: ${alertData.component}\nData suggerita: ${new Date(Date.now() + 2*24*60*60*1000).toLocaleDateString('it-IT')}\nTecnico: Assegnazione automatica in corso...\nProblematica: ${alertData.component}\n\nL'intervento è stato programmato nel sistema.`);
+      }
       setActionTaken(null);
       setPredictiveAlert(false);
     }, 800);
@@ -881,18 +926,18 @@ export default function DigitalTwin() {
                         </div>
                         <div className="flex gap-2 flex-wrap mt-4">
                           <button
-                            onClick={handleOrderPart}
+                            onClick={handlePrimaryAction}
                             disabled={actionTaken !== null}
                             className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
-                            style={{ background: actionTaken === 'order' ? 'rgba(34,197,94,0.6)' : 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: actionTaken ? 'not-allowed' : 'pointer', boxShadow: '0 0 16px rgba(34,197,94,0.5)' }}>
-                            {actionTaken === 'order' ? '⏳ Elaborazione...' : '📦 Ordina Ricambio (Consegna stimata: 2h)'}
+                            style={{ background: actionTaken === 'primary' ? 'rgba(34,197,94,0.6)' : 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: actionTaken ? 'not-allowed' : 'pointer', boxShadow: '0 0 16px rgba(34,197,94,0.5)' }}>
+                            {actionTaken === 'primary' ? '⏳ Elaborazione...' : `📦 ${alertData.primaryAction} (${alertData.primaryDesc})`}
                           </button>
                           <button
-                            onClick={handleScheduleMaintenance}
+                            onClick={handleSecondaryAction}
                             disabled={actionTaken !== null}
                             className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-gray-700 disabled:opacity-70 disabled:cursor-not-allowed"
-                            style={{ background: actionTaken === 'schedule' ? 'rgba(107,114,128,0.6)' : 'rgba(107,114,128,0.4)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.6)', cursor: actionTaken ? 'not-allowed' : 'pointer' }}>
-                            {actionTaken === 'schedule' ? '⏳ Programmazione...' : '🔧 Pianifica Intervento Tecnico'}
+                            style={{ background: actionTaken === 'secondary' ? 'rgba(107,114,128,0.6)' : 'rgba(107,114,128,0.4)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.6)', cursor: actionTaken ? 'not-allowed' : 'pointer' }}>
+                            {actionTaken === 'secondary' ? '⏳ Elaborazione...' : `🔧 ${alertData.secondaryAction}`}
                           </button>
                         </div>
                       </div>
@@ -916,11 +961,12 @@ export default function DigitalTwin() {
               <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                 {selected.components.map((c, i) => {
                   const isActive = focusComp === i;
+                  const isAnomalous = predictiveAlert && c.name === alertData.component;
                   const stColor = statusColors[c.status] || '#22c55e';
                   return (
                     <div key={i} onClick={() => { setFocusComp(isActive ? -1 : i); setAutoRotate(false); if (isActive) setAutoRotate(true); }}
                       className="px-3 py-1.5 cursor-pointer transition-all"
-                      style={{ background: isActive ? 'rgba(0,212,170,0.06)' : 'transparent', borderLeft: isActive ? '3px solid #00d4aa' : '3px solid transparent' }}>
+                      style={{ background: isAnomalous ? 'rgba(239,68,68,0.2)' : isActive ? 'rgba(0,212,170,0.06)' : 'transparent', borderLeft: isAnomalous ? '3px solid #ef4444' : isActive ? '3px solid #00d4aa' : '3px solid transparent', animation: isAnomalous ? 'pulse 2s infinite' : 'none' }}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: stColor, boxShadow: c.status !== 'OK' ? `0 0 4px ${stColor}` : 'none' }} />
