@@ -644,7 +644,7 @@ export default function DigitalTwin() {
     const timer2 = setTimeout(() => {
       // Dopo altri 1.5 secondi: trigger alert
       setSystemStatus('alert');
-      const anomalousComps = selected.components.filter(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO' || c.eff < 85);
+      const anomalousComps = selected.components.filter(c => c.status === 'ATTENZIONE' || c.status === 'CRITICO');
       if (anomalousComps.length > 0) {
         const anomaly = anomalousComps[0];
         const compIdx = selected.components.indexOf(anomaly);
