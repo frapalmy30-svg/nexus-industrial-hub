@@ -943,33 +943,36 @@ export default function DigitalTwin() {
 
               {/* Popup Allarme Fluttuante */}
               {predictiveAlert && alertData.percentage > 0 && alertData.percentage < 85 && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-auto" style={{ animation: 'scaleIn 0.4s ease-out' }}>
-                  <style>{`@keyframes scaleIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }`}</style>
-                  <div className="p-5 rounded-2xl overflow-hidden max-w-lg" style={{ background: 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(249,115,22,0.08) 100%)', border: '2px solid #f97316', boxShadow: '0 0 40px rgba(249,115,22,0.4), inset 0 0 20px rgba(249,115,22,0.1)', backdropFilter: 'blur(12px)' }}>
-                    <div className="flex items-start gap-4">
-                      <div className="text-4xl flex-shrink-0 animate-pulse">⚙️</div>
-                      <div className="flex-1">
-                        <div className="text-sm font-bold mb-3" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: '1.5', fontSize: '0.95rem' }}>
-                          AI PREDICTIVE ALERT - Status: {alertData.percentage}% | {alertData.anomaly}
+                <div className="fixed bottom-6 right-6 z-50 pointer-events-auto" style={{ width: '340px', animation: 'slideInRight 0.4s ease-out' }}>
+                  <style>{`@keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }`}</style>
+                  <div className="p-4 rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(15,20,35,0.97) 0%, rgba(30,15,15,0.97) 100%)', border: '2px solid #f97316', boxShadow: '0 0 40px rgba(249,115,22,0.35), inset 0 0 20px rgba(249,115,22,0.06)', backdropFilter: 'blur(16px)' }}>
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl flex-shrink-0 animate-pulse">⚙️</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold mb-2" style={{ background: 'linear-gradient(90deg, #ef4444, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', lineHeight: '1.5' }}>
+                          AI PREDICTIVE ALERT · {alertData.percentage}%
                         </div>
-                        <div className="flex gap-2 flex-wrap mt-4">
+                        <div className="text-[0.7rem] mb-3 leading-relaxed" style={{ color: '#f1f5f9' }}>
+                          {alertData.anomaly}
+                        </div>
+                        <div className="flex flex-col gap-2">
                           <button
                             onClick={handlePrimaryAction}
                             disabled={actionTaken !== null}
-                            className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
-                            style={{ background: actionTaken === 'primary' ? 'rgba(34,197,94,0.6)' : 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', cursor: actionTaken ? 'not-allowed' : 'pointer', boxShadow: '0 0 16px rgba(34,197,94,0.5)' }}>
+                            className="w-full px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+                            style={{ background: actionTaken === 'primary' ? 'rgba(34,197,94,0.6)' : 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', border: 'none', boxShadow: '0 0 12px rgba(34,197,94,0.4)' }}>
                             {actionTaken === 'primary' ? '⏳ Elaborazione...' : `📦 ${alertData.primaryAction} (${alertData.primaryDesc})`}
                           </button>
                           <button
                             onClick={handleSecondaryAction}
                             disabled={actionTaken !== null}
-                            className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-gray-700 disabled:opacity-70 disabled:cursor-not-allowed"
-                            style={{ background: actionTaken === 'secondary' ? 'rgba(107,114,128,0.6)' : 'rgba(107,114,128,0.4)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.6)', cursor: actionTaken ? 'not-allowed' : 'pointer' }}>
+                            className="w-full px-3 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                            style={{ background: actionTaken === 'secondary' ? 'rgba(107,114,128,0.6)' : 'rgba(107,114,128,0.25)', color: '#e5e7eb', border: '1px solid rgba(107,114,128,0.5)' }}>
                             {actionTaken === 'secondary' ? '⏳ Elaborazione...' : `🔧 ${alertData.secondaryAction}`}
                           </button>
                         </div>
                       </div>
-                      <button onClick={() => setPredictiveAlert(false)} className="text-xl font-bold flex-shrink-0 hover:opacity-70 transition-opacity" style={{ color: '#f97316', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      <button onClick={() => setPredictiveAlert(false)} className="text-base font-bold flex-shrink-0 hover:opacity-70 transition-opacity" style={{ color: '#f97316', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                         ✕
                       </button>
                     </div>
