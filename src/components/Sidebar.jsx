@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Truck, ShoppingCart, Warehouse,
-  MonitorCog, Eye, AlertTriangle, Zap
+  MonitorCog, Eye, AlertTriangle, Zap, Leaf
 } from 'lucide-react';
 
 // Ottimo: l'array costante è fuori dal componente per ottimizzare le performance
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/digital-twin', icon: MonitorCog, label: 'DIGITAL TWIN' },
   { to: '/visual-training', icon: Eye, label: 'AI TRAINING' },
   { to: '/risk-mitigation', icon: AlertTriangle, label: 'RISK MITIGATION' },
+  { to: '/carbon-footprint', icon: Leaf, label: 'CARBON' },
 ];
 
 export default function Sidebar() {

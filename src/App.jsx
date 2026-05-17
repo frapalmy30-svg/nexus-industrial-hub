@@ -8,7 +8,8 @@ import Magazzino from './pages/Magazzino';
 import DigitalTwin from './pages/DigitalTwin';
 import VisualTraining from './pages/VisualTraining';
 import RiskMitigation from './pages/RiskMitigation';
-import './App.css'; 
+import CarbonFootprint from './pages/CarbonFootprint';
+import './App.css';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
               <Route path="/digital-twin" element={<DigitalTwin />} />
               <Route path="/visual-training" element={<VisualTraining />} />
               <Route path="/risk-mitigation" element={<RiskMitigation />} />
+              <Route path="/carbon-footprint" element={<CarbonFootprint />} />
             </Routes>
           </div>
         </main>

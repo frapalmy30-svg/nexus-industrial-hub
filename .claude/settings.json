@@ -59,7 +59,8 @@
       "Bash(git pull *)",
       "Bash(vercel --prod)",
       "Read(//c/c/Users/frapa/Desktop/Supply Chain/nexus/src/pages/**)",
-      "Read(//c/c/Users/frapa/Desktop/Supply Chain/nexus/src/data/**)"
+      "Read(//c/c/Users/frapa/Desktop/Supply Chain/nexus/src/data/**)",
+      "WebFetch(domain:demo.greenrouter.it)"
     ],
     "additionalDirectories": [
       "\\tmp",
